@@ -1,0 +1,31 @@
+FEATURES:
+* more themes
+* horizontal scrolling
+* inertial scrolling like on an iphone
+* option for fixed bar height
+* a smart jquery selector that applies the scrollbar everywhere, but only where necessary
+* keyboard navigation support
+* 4th graphical state [when the mouse hovers over the track]
+* additional options for autohiding such as sliding in and out. be able to adjust the speed of the fade out
+* option to disable scrolling
+* 5th graphical state [when the scrollbar is disabled]
+* option to always be visible. when not needed, scrollbar goes into disabled mode
+* ability to inject custom html for the decoration element
+* option to animate between graphical states
+* option to allow dragging the content with the mouse vertically and horizontally
+* support for anchors (in-page links)
+* ARIA support
+
+FIXES:
+* rename option "arrowsOnly" to "withBar"
+* rename option "barHeight" to "trackHeight"
+* shorten css class names
+* disable selection outside of content area when selecting text
+
+Concept change:
+* Modules
+- VenScrollBar base
+- VenWindow addon
+- VenListBox addon
+- VenComboBox addon
+- VenTextBox addon
