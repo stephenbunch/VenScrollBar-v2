@@ -17,29 +17,34 @@
 			overflow: auto;
 			margin-bottom: 100px;
 		}
+		
+		#box:focus 
+		{
+			border: 1px solid red;
+		}
 	
 	</style>
 
 	<style type="text/css">
 		
-		.vbar 
+		.vbar
 		{
 			width: 20px;
 			background-color: Blue;
 		}
 		
-		.hbar 
+		.hbar
 		{
 			height: 20px;
 			background-color: Red;
 		}
 		
-		.content 
+		.content
 		{
 			width: 500px !important;
 			cursor: url("graphics/openhand.cur"), move;
 		}
-		.content:active 
+		.content:active
 		{
 			cursor: url("graphics/closedhand.cur"), move;
 		}
@@ -80,9 +85,9 @@
 	<script type="text/javascript">
 
 		$(document).ready(function () {
-
-			$("*").VenScrollBar({lockWheel: true, range: "dynamic"});
-
+			
+			// $("*") does not work in IE7.
+			$("body *").VenScrollBar({lockWheel: true, range: "dynamic"});
 		});
 
 	</script>
@@ -145,6 +150,7 @@
 		id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
 		pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
 		pretium risus, in viverra metus nunc eget purus.
+		<a href="www.google.com">Click here</a>
 	</div>
 
 	<div>

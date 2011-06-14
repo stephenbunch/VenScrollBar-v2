@@ -28,7 +28,7 @@ $.event.special.mouseywheel = {
 					0;
 
 			// Provide an easier interface for preventing the document from scrolling.
-			e.stopPropagation = function () {
+			e.preventDefault = function () {
 				if (_e.stopPropagation) _e.stopPropagation();
 				if (_e.preventDefault) _e.preventDefault();
 				_e.cancelBubble = true;
@@ -112,30 +112,97 @@ $.event.special.sizechanged = {
 	}
 };
 
-$.event.special.grab = {
+$.event.special.drag = {
 	add: function (handleObj) {
 		
 		var coord = null;
+		var me = $(this);
 
-		var onMouseMove = function (e) {
-			if (coord == null) coord = { x: e.pageX, y: e.pageY };
-			else {
-				var evt = new $.Event("grab");
-				evt.delta = { x: e.pageX - coord.x, y: e.pageY - coord.y };
-				handleObj.handler.apply(this, [evt]);
-			} 
+		// IE 8 and 7 don't support the mousemove event on the window object.
+		var global = $.support.changeBubbles ? window : document;
+
+		var onMouseDown = function () {
+			$(global).bind("mousemove.drag", onMouseMove).bind("mouseup.drag", onMouseUp);
 		};
 
-		$(this).bind("mousedown.grab", function () {
-			$(this).bind("mousemove.grab", onMouseMove).bind("mouseup.grab", function (){
-				$(this).unbind("mousemove.grab").unbind("mouseup.grab");
-			});
-		});
+		var onMouseMove = function (e) {
+			if (coord == null)
+				coord = {
+					x: e.pageX,
+					y: e.pageY
+				};
+			else {
+				var evt = new $.Event("drag");
+				evt.delta = {
+					x: Math.floor(e.pageX - coord.x),
+					y: Math.floor(e.pageY - coord.y)
+				};
+				coord = {
+					x: e.pageX,
+					y: e.pageY
+				};
+				evt.data = handleObj.data;
+				handleObj.handler.apply(this, [evt]);
+			}
+		};
 
+		var onMouseUp = function () {
+			$(global).unbind("mousemove.drag").unbind("mouseup.drag");
+			coord = null;
+		};
+
+		var onTouchStart = function (e) {
+			if (e.targetTouches.length > 0) {
+				this.ontouchmove = onTouchMove;
+				this.ontouchend = onTouchEnd;
+			}
+		};
+
+		var onTouchMove = function (e) {
+			if (e.targetTouches.length == 1) {
+				e.preventDefault();
+				onMouseMove({
+					pageX: e.targetTouches[0].pageX,
+					pageY: e.targetTouches[0].pageY
+				});
+			}
+		};
+
+		var onTouchEnd = function (e) {
+			if (e.targetTouches.length == 0) {
+				this.ontouchstart = null;
+				coord = null;
+			}
+		};
+
+		if (this.ontouchstart !== undefined) {
+			// Mobile support
+			this.ontouchstart = onTouchStart;
+
+		} else if (!handleObj.data.onlyMobile) {
+			// Desktop support
+			me.bind("mousedown.drag", onMouseDown);
+
+			// Disable text selection
+			if (this.onselectstart !== undefined)
+				this.onselectstart = function() { return false; }
+			else if (this.style.MozUserSelect !== undefined)
+				this.style.MozUserSelect = "none";
+			else
+				this.onmousedown = function() { return false; }
+		}
 	},
 
 	remove: function () {
 		$(this).unbind("mousedown").unbind("mousemove").unbind("mouseup");
+
+		// Enable selection
+		if (this.onselectstart !== undefined)
+			this.onselectstart = null;
+		else if (this.style.MozUserSelect !== undefined)
+			this.style.MozUserSelect = "all";
+		else
+			this.onmousedown = null;
 	}
 };
 
@@ -147,10 +214,10 @@ $.fn.VenScrollBar = function (opt) {
 		autoHide: false, 			// hide scrollbar after a certain period of inactivity
 		classes: {
 			// root element classes
-			vbar: "vbar",			// vertical bar
-			hbar: "hbar",			// horizontal bar
 			vtrack: "vtrack",		// vertical track
 			htrack: "htrack",		// horizontal track
+			vbar: "vbar",			// vertical bar
+			hbar: "hbar",			// horizontal bar
 			up: "up",				// up arrow
 			down: "down",			// down arrow
 			left: "left",			// left arrow
@@ -190,11 +257,11 @@ $.fn.VenScrollBar = function (opt) {
 		overlay: false, 			// overlay the scrollbar on top of the content
 		smoothScroll: false,		// use animation to make scrolling smooth like in Firefox
 		themeRoller: false,			// be compatible with jQuery UI ThemeRoller themes
-		wave: false,				// mimic Google Wave behavior
+		wave: false					// mimic Google Wave behavior
 	};
 
 	// Merge two objects recursively, modifying the first.
-	opt = $.extend( true, def, opt );
+	opt = $.extend(true, def, opt);
 
 	var guid = 0;
 
@@ -273,6 +340,9 @@ $.fn.VenScrollBar = function (opt) {
 				me.dom.body.bind("sizechanged", onSizeChanged);
 				me.dom.vtrack.bind("sizechanged", {ui: "vbar", dom: "vtrack", prop: "height"}, onTrackSizeChanged);
 				me.dom.htrack.bind("sizechanged", {ui: "hbar", dom: "htrack", prop: "width"}, onTrackSizeChanged);
+				me.dom.body.bind("drag", {source: 3}, onDrag);
+				me.dom.vbar.bind("drag", {source: 1}, onDrag);
+				me.dom.hbar.bind("drag", {source: 2}, onDrag);
 			};
 
 			// Update ratios and sizes.
@@ -308,7 +378,7 @@ $.fn.VenScrollBar = function (opt) {
 				var prop = e.originalEvent.shiftKey || e.axis == 1 ? "hbar" : "vbar";
 				me.ui[prop].pos(me.ui[prop].pos() + opt.delta.wheel * (e.wheelDelta < 0 ? 1 : -1));
 
-				if (opt.lockWheel || !me.ui[prop].isAtEdge()) e.stopPropagation();
+				if (opt.lockWheel || !me.ui[prop].isAtEdge()) e.preventDefault();
 			};
 
 			var onTrackSizeChanged = function (e) {
@@ -316,11 +386,26 @@ $.fn.VenScrollBar = function (opt) {
 				onSizeChanged();
 			};
 
+			// e.data.source (1|2|3): 1 = vertical bar, 2 = horizontal bar, 3 = body
+			var onDrag = function (e) {
+				switch (e.data.source) {
+					case 1:
+						me.ui.vbar.pos(me.ui.vbar.pos() + e.delta.y);
+						break;
+					case 2:
+						me.ui.hbar.pos(me.ui.hbar.pos() + e.delta.x);
+						break;
+					case 3:
+						me.ui.hbar.pos(me.ui.hbar.pos() + e.delta.x * -me.ui.hbar.ratio);
+						me.ui.vbar.pos(me.ui.vbar.pos() + e.delta.y * -me.ui.vbar.ratio);
+				}
+			};
+
 			ctor();
 		},
 
 		Bar: function () {
-			var me = this, d = 0, s = 0, r = 0, p = 0, st = 0;
+			var me = this, d = 0, s = 0, r = 0, p = 0, st = 0, microDelta = 0;
 
 			// Scrollbar axis (1|2). 1 = x, 2 = y
 			this.axis = 0;
@@ -363,13 +448,10 @@ $.fn.VenScrollBar = function (opt) {
 				if (newValue > me.range() - me.size()) newValue = me.range() - me.size();
 
 				if (p != newValue) {
-					var oldValue = p;
 					p = newValue;
-					var prop = me.axis == 1 ? "left" : "top";
 
-					// Instead of caching the bar's initial offset and making precise
-					// position adjustments, we just use relative positioning.
-					me.dom.css(prop, me.dom.position()[prop] +  newValue - oldValue);
+					var prop = me.axis == 1 ? "left" : "top";
+					me.dom.css(prop, newValue);
 					
 					// Raise positionChanged event.
 					me.evt.positionChanged(me);
