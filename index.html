@@ -16,11 +16,7 @@
 			height: 300px;
 			overflow: auto;
 			margin-bottom: 100px;
-		}
-		
-		#box:focus 
-		{
-			border: 1px solid red;
+			border: 1px solid white;
 		}
 	
 	</style>
@@ -42,11 +38,13 @@
 		.content
 		{
 			width: 500px !important;
-			cursor: url("graphics/openhand.cur"), move;
+			cursor: text;
+			/*cursor: url("graphics/openhand.cur"), move;*/
 		}
-		.content:active
+		
+		.content:active 
 		{
-			cursor: url("graphics/closedhand.cur"), move;
+			/*cursor: url("graphics/closedhand.cur"), move;*/
 		}
 		
 		.disabled 
@@ -82,10 +80,16 @@
 		
 	</style>
 
+	<!--Custom cursors will not be supported in IE. Too much work for a feature that
+		probably won't be used very often.-->
+	<!--[if IE]>
+		<link rel="stylesheet" type="text/css" href="ie.css" /> 
+	<![endif]-->
+
 	<script type="text/javascript">
 
 		$(document).ready(function () {
-			
+
 			// $("*") does not work in IE7.
 			$("body *").VenScrollBar({lockWheel: true, range: "dynamic"});
 		});
@@ -105,7 +109,7 @@
 			aliquet, magna ac vulputate eleifend, quam dolor varius felis, ut egestas risus arcu nec velit.
 			Nullam dapibus ullamcorper magna ac facilisis. Proin ac nibh ante, sed fermentum ligula.
 			Suspendisse feugiat felis non nisi lobortis dignissim in a turpis. Aenean consectetur nibh ac augue
-			viverra congue.
+			viverra congue.<div id="item3">Item 3</div>
 
 			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
 			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
@@ -121,11 +125,15 @@
 			id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
 			pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
 			pretium risus, in viverra metus nunc eget purus.
-			<div id="item"></div>
+			<div id="item1">
+				Item 1
+				<div id="item2">Item 2</div>
+			</div>
 		</div>
 	</div>
 
 	<div>
+		<a href="#item1">#item1</a><a href="#item2">#item2</a><a href="#item3">#item3</a>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim augue sit amet magna viverra
 		pellentesque. Nam felis lacus, vestibulum quis accumsan non, posuere sit amet ligula. Pellentesque
 		habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris malesuada
@@ -150,7 +158,7 @@
 		id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
 		pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
 		pretium risus, in viverra metus nunc eget purus.
-		<a href="www.google.com">Click here</a>
+		<a href="http://www.google.com">Click here</a>
 	</div>
 
 	<div>
