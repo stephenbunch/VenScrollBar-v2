@@ -23,16 +23,18 @@
 
 	<style type="text/css">
 		
-		.vbar
+		.ybar
 		{
 			width: 20px;
 			background-color: Blue;
+			height: 20px;
 		}
 		
-		.hbar
+		.xbar
 		{
 			height: 20px;
 			background-color: Red;
+			width: 20px;
 		}
 		
 		.content
@@ -52,7 +54,7 @@
 			background-color: Gray;
 		}
 		
-		.window 
+		.viewport 
 		{
 			top: 0;
 			left: 0;
@@ -60,7 +62,7 @@
 			bottom: 20px;
 		}
 		
-		.vtrack 
+		.ytrack 
 		{
 			width: 20px;
 			top: 0;
@@ -69,7 +71,7 @@
 			position: absolute;
 		}
 		
-		.htrack
+		.xtrack
 		{
 			height: 20px;
 			left: 0;
@@ -88,10 +90,33 @@
 
 	<script type="text/javascript">
 
+//		// Extras
+//		$.expr[":"].notScrollPlugin = function (elem) {
+//			try {
+//				return !elem.venscrollbar.isScrollPlugin;
+//			} catch (ex) {
+//				return true;
+//			}
+//		};
+
+//		$.fn.closestParent = function (selector) {
+//			var elem = this;
+//			while (elem = elem.parent(), elem.length > 0 && !elem.is(selector));
+//			return elem;
+//		};
+
+//		$.fn.closestChildren = function (selector) {
+//			var elem = this;
+//			while (elem = elem.children(), elem.length > 0 && !elem.is(selector));
+//			return elem.filter(selector);
+//		};
+
 		$(document).ready(function () {
 
 			// $("*") does not work in IE7.
-			$("body *").VenScrollBar({lockWheel: true, range: "dynamic"});
+			$("body *").VenScrollBar({
+				lockWheel: true
+			});
 		});
 
 	</script>
@@ -110,6 +135,51 @@
 			Nullam dapibus ullamcorper magna ac facilisis. Proin ac nibh ante, sed fermentum ligula.
 			Suspendisse feugiat felis non nisi lobortis dignissim in a turpis. Aenean consectetur nibh ac augue
 			viverra congue.<div id="item3">Item 3</div>
+
+			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
+			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
+			Vestibulum quis commodo libero. Cras lobortis lobortis justo, vitae vulputate nulla dapibus ut.
+			Duis faucibus commodo lorem at blandit. Praesent eu tempor odio. Nullam dignissim leo quis est
+			consectetur quis suscipit turpis sagittis. Sed non nisi et risus placerat sollicitudin. Vestibulum
+			venenatis, lectus vestibulum fringilla feugiat, turpis nunc dictum augue, quis viverra erat est
+			iaculis tortor. Donec posuere dui in dolor suscipit nec convallis erat commodo. Donec ultrices
+			orci vitae justo iaculis convallis. Curabitur ac arcu metus, in mollis erat. Maecenas fermentum,
+			arcu ac bibendum facilisis, magna enim consectetur sapien, a vulputate ipsum felis quis massa.
+			Morbi mauris neque, venenatis sit amet pulvinar non, porttitor sed nisi. Nunc molestie eleifend
+			purus, laoreet ultrices purus sodales nec. Praesent ut leo aliquet leo euismod fermentum fermentum
+			id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
+			pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
+			pretium risus, in viverra metus nunc eget purus.
+
+			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
+			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
+			Vestibulum quis commodo libero. Cras lobortis lobortis justo, vitae vulputate nulla dapibus ut.
+			Duis faucibus commodo lorem at blandit. Praesent eu tempor odio. Nullam dignissim leo quis est
+			consectetur quis suscipit turpis sagittis. Sed non nisi et risus placerat sollicitudin. Vestibulum
+			venenatis, lectus vestibulum fringilla feugiat, turpis nunc dictum augue, quis viverra erat est
+			iaculis tortor. Donec posuere dui in dolor suscipit nec convallis erat commodo. Donec ultrices
+			orci vitae justo iaculis convallis. Curabitur ac arcu metus, in mollis erat. Maecenas fermentum,
+			arcu ac bibendum facilisis, magna enim consectetur sapien, a vulputate ipsum felis quis massa.
+			Morbi mauris neque, venenatis sit amet pulvinar non, porttitor sed nisi. Nunc molestie eleifend
+			purus, laoreet ultrices purus sodales nec. Praesent ut leo aliquet leo euismod fermentum fermentum
+			id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
+			pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
+			pretium risus, in viverra metus nunc eget purus.
+
+			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
+			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
+			Vestibulum quis commodo libero. Cras lobortis lobortis justo, vitae vulputate nulla dapibus ut.
+			Duis faucibus commodo lorem at blandit. Praesent eu tempor odio. Nullam dignissim leo quis est
+			consectetur quis suscipit turpis sagittis. Sed non nisi et risus placerat sollicitudin. Vestibulum
+			venenatis, lectus vestibulum fringilla feugiat, turpis nunc dictum augue, quis viverra erat est
+			iaculis tortor. Donec posuere dui in dolor suscipit nec convallis erat commodo. Donec ultrices
+			orci vitae justo iaculis convallis. Curabitur ac arcu metus, in mollis erat. Maecenas fermentum,
+			arcu ac bibendum facilisis, magna enim consectetur sapien, a vulputate ipsum felis quis massa.
+			Morbi mauris neque, venenatis sit amet pulvinar non, porttitor sed nisi. Nunc molestie eleifend
+			purus, laoreet ultrices purus sodales nec. Praesent ut leo aliquet leo euismod fermentum fermentum
+			id magna. Praesent interdum mauris blandit est elementum tempus. Quisque at quam in risus eleifend
+			pellentesque fermentum vitae justo. Donec commodo, est nec scelerisque bibendum, ligula odio
+			pretium risus, in viverra metus nunc eget purus.
 
 			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
 			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
