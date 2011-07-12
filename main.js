@@ -5,7 +5,7 @@ $.fn.VenScrollBar = function (opt) {
 		anchor: true,				// handle anchor link click events								[done]
 		arrows: true,				// inject html for arrows
 		autoHide: false, 			// hide scrollbar after a certain period of inactivity
-		classes: {					//																[done]
+		class: {					//																[done]
 			viewport: "viewport",	// visible part of the content
 			xtrack: "xtrack",		// horizontal track
 			ytrack: "ytrack",		// vertical track
@@ -40,13 +40,13 @@ $.fn.VenScrollBar = function (opt) {
 		},
 		inertial: true, 			// enable inertial scrolling like on iOS devices				[done]
 		keyboard: true, 			// enable keyboard navigation support							[done]
-		latency: 0,					// time to wait before the scrollbar responds to mouse dragging
+		lag: 0,						// delay before responding to scrollbar dragging				[done]
 		live: true,					// poll for size changes instead of using refresh()				[done]
-		lockWheel: false, 			// disable mousewheel from scrolling the page					[done]
 		select: true, 				// enable content selection via the mouse						[done]
 		smooth: false,				// use animation to make scrolling smooth like in Firefox		[done]
 		touch: true,				// enable touch support											[done]
-		wheel: true					// enable mousewheel support									[done]
+		wheel: true,				// enable mousewheel support									[done]
+		wheelLock: false 			// disable mousewheel from scrolling the page					[done]
 	};
 
 	// Merge two objects recursively, modifying the first.
@@ -76,6 +76,13 @@ $.fn.VenScrollBar = function (opt) {
 
 			sameSign: function (a, b) {
 				return (a >= 0) ^ (b < 0);
+			},
+
+			setInterval: function (callback, delay, executeNow) {
+				if (executeNow) {
+					callback();
+				}
+				return setInterval(callback, delay);
 			}
 		},
 
@@ -261,6 +268,10 @@ $.fn.VenScrollBar = function (opt) {
 												// Start the animation.
 												frameRef = 0;
 												animationID = setInterval(animation, $.fx.interval);
+											},
+
+											clear: function () {
+												clearInterval(animationID);
 											}
 
 										};
@@ -359,7 +370,8 @@ $.fn.VenScrollBar = function (opt) {
 							}
 
 							cookieJar[cookie] = {
-								elem: elem
+								elem: elem,
+								stopInertial: inertial.clear
 							};
 
 							return cookie;
@@ -373,6 +385,10 @@ $.fn.VenScrollBar = function (opt) {
 							fn.setSelection(elem, true);
 
 							delete cookieJar[cookie];
+						},
+
+						stopInertial: function (cookie) {
+							cookieJar[cookie].stopInertial();
 						}
 					},
 
@@ -497,7 +513,6 @@ $.fn.VenScrollBar = function (opt) {
 				size = 0,
 				state = 0,
 				value = 0,
-				smoothScrollID = 0,
 				overflow = cssOverflow,
 				
 				setPosition = function (val) {
@@ -543,8 +558,9 @@ $.fn.VenScrollBar = function (opt) {
 				},
 
 				mouseLastOK = 0,
-
 				onDrag = function (e) {
+					me.stopInertial();
+
 					var mousePosition = me.axis === 1 ? e.pageX : e.pageY,
 						delta = me.axis === 1 ? e.delta.x : e.delta.y;
 
@@ -560,6 +576,37 @@ $.fn.VenScrollBar = function (opt) {
 						mouseLastOK = mousePosition;
 					}
 				},
+
+				motion = (function () {
+					var rounds = 0,
+						intervalID = 0,
+
+						start = function () {
+							intervalID = setInterval(function () {
+								if (rounds === 0) {
+									clearInterval(intervalID);
+									intervalID = 0;
+									return;
+								}
+								setPosition(Math.round(me.position + (value - me.position) / rounds));
+								rounds--;
+							}, $.fx.interval);
+						},
+
+						reset = function (duration) {
+							// If there's no where to go, then don't do anyting.
+							if (me.position !== value) {
+								rounds = Math.round(duration / $.fx.interval);
+
+								// If the loop isn't already running, start it.
+								if (intervalID === 0) {
+									start();
+								}
+							}
+						};
+
+					return { reset: reset };
+				})(),
 				
 				ctor = function () {
 					onSizeChanged();
@@ -591,6 +638,10 @@ $.fn.VenScrollBar = function (opt) {
 						sink.drag.bind(bar, onDrag, { mobile: opt.touch, desktop: true });
 					}
 				};
+
+			// Set outside this class, inside the plugin initialization.
+			// Stops any inertial scrolling that may be going on.
+			me.stopInertial = $.noop;
 
 			// Scrollbar axis: { 1 -> x | 2 -> y }.
 			me.axis = axis;
@@ -629,7 +680,7 @@ $.fn.VenScrollBar = function (opt) {
 				if (state !== val) {
 					state = val;
 					updateStyle();
-					bar[state === 1 ? "addClass" : "removeClass"](opt.classes.disabled);
+					bar[state === 1 ? "addClass" : "removeClass"](opt.class.disabled);
 					return true;
 				} else {
 					return false;
@@ -652,7 +703,7 @@ $.fn.VenScrollBar = function (opt) {
 
 			// The { top | left } position of scrollbar depending on axis.
 			// Returns true if a change was made.
-			me.val = function (val, normal) {
+			me.val = function (val, dragging) {
 				// We only care about position if the scrollbar is enabled.
 				if (val === undefined || state === 0) {
 					return value;
@@ -665,27 +716,21 @@ $.fn.VenScrollBar = function (opt) {
 					value = val;
 
 					// When normal is true, we bypass whatever SMOOTH is set to.
-					if (!opt.smooth || normal) {
-						setPosition(val);
+					if (!opt.smooth || dragging) {
+						// Check for values smaller than 0 because this opt.lag is a user-inputted value.
+						if (!dragging || opt.lag <= 0) {
+							setPosition(val);
+						
+						} else {
+							// Implement lag.
+							setTimeout(function () {
+								motion.reset(130);
+							}, opt.lag);
+						}
 
 					} else {
-						// Stop previous smooth scroll.
-						clearInterval(smoothScrollID);
-
-						var duration = 150,
-							rounds = Math.round(duration / $.fx.interval),
-							delta = (val - me.position) / rounds,
-							i = 0;
-
-						// Start next smooth scroll.
-						smoothScrollID = setInterval(function () {
-							if (i === rounds) {
-								clearInterval(smoothScrollID);
-								return;
-							}
-							setPosition(me.position + delta);
-							i++;
-						}, $.fx.interval);
+						// Implement smooth scrolling.
+						motion.reset(130);
 					}
 					return true;
 
@@ -715,7 +760,7 @@ $.fn.VenScrollBar = function (opt) {
 		// HTML injection.
 		(function () {
 			// Create wrapper element.
-			var	wrapper = $("<div class='" + opt.classes.root + "'>"),
+			var	wrapper = $("<div class='" + opt.class.root + "'>"),
 				
 				// CSS properties that affect layout.
 				cssProp = [
@@ -747,17 +792,17 @@ $.fn.VenScrollBar = function (opt) {
 			}
 			
 			// The ID must be removed after the styles are copied.
-			$this.removeAttr("id").addClass(opt.classes.content);
+			$this.removeAttr("id").addClass(opt.class.content);
 
 			// Append each container element to wrapper.
-			wrapper.append($.map(opt.classes, function (value, key) {
+			wrapper.append($.map(opt.class, function (value, key) {
 				return $.inArray(key, skip) === -1 ? "<div class='" + value + "'></div>" : null;
 			}).join(""));
 
 			// Add wrapper to the DOM and relocate the content.
 			$this.parent().append(wrapper);
 			$this.detach();
-			wrapper.children("." + opt.classes.viewport).append($this);
+			wrapper.children("." + opt.class.viewport).append($this);
 		})();
 
 
@@ -765,15 +810,20 @@ $.fn.VenScrollBar = function (opt) {
 		$this.data("venscrollbar", (function () {
 			var body = $this,
 				root = $this.parent().parent(),
-				viewport = $("> div." + opt.classes.viewport, root),
+				viewport = $("> div." + opt.class.viewport, root),
 				xBar,
 				yBar,
 				
+				// Stops any inertial scrolling that may be going on.
+				stopInertial = $.noop,
+				
 				onScroll = function (e) {
+					stopInertial();
+
 					var ui = e.originalEvent.shiftKey || e.axis === 1 ? xBar : yBar;
 					ui.val(ui.val() + opt.delta.medium * (e.wheelDelta < 0 ? 1 : -1));
 
-					if (opt.lockWheel || !ui.isAtEdge()) {
+					if (opt.wheelLock || !ui.isAtEdge()) {
 						e.preventDefault();
 					}
 				},
@@ -789,8 +839,11 @@ $.fn.VenScrollBar = function (opt) {
 				},
 
 				onKeyDown = function (e) {
-					var ui = yBar;
+					if (e.keyCode > 31 && e.keyCode < 41) {
+						stopInertial();
+					}
 
+					var ui = yBar;
 					switch (e.keyCode) {
 						case 32: // spacebar
 							yBar.val(yBar.val() + opt.delta.large);
@@ -825,12 +878,14 @@ $.fn.VenScrollBar = function (opt) {
 							return;
 					}
 
-					if (opt.lockWheel || !ui.isAtEdge()) {
+					if (opt.wheelLock || !ui.isAtEdge()) {
 						e.preventDefault();
 					}
 				},
 
 				onAnchorClicked = function (e) {
+					stopInertial();
+
 					var hash = $(this).attr("href"),
 						target = $(hash),
 						id = target.attr("id"),
@@ -915,8 +970,8 @@ $.fn.VenScrollBar = function (opt) {
 			});
 
 			xBar = new ScrollBar(
-				$("> div." + opt.classes.xbar, root),
-				$("> div." + opt.classes.xtrack, root),
+				$("> div." + opt.class.xbar, root),
+				$("> div." + opt.class.xtrack, root),
 				viewport,
 				body,
 				1,
@@ -924,8 +979,8 @@ $.fn.VenScrollBar = function (opt) {
 			);
 
 			yBar = new ScrollBar(
-				$("> div." + opt.classes.ybar, root),
-				$("> div." + opt.classes.ytrack, root),
+				$("> div." + opt.class.ybar, root),
+				$("> div." + opt.class.ytrack, root),
 				viewport,
 				body,
 				2,
@@ -944,7 +999,13 @@ $.fn.VenScrollBar = function (opt) {
 
 			// Touch and grab support.
 			if (opt.grab || opt.touch) {
-				sink.drag.bind(body, onDrag, { mobile: opt.touch, desktop: opt.grab, inertial: opt.inertial });
+				var cookie = sink.drag.bind(body, onDrag, { mobile: opt.touch, desktop: opt.grab, inertial: opt.inertial });
+
+				stopInertial = function () {
+					sink.drag.stopInertial(cookie);
+				};
+				xBar.stopInertial = stopInertial;
+				yBar.stopInertial = stopInertial;
 			}
 			
 			// Keyboard support.
