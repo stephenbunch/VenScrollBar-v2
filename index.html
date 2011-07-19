@@ -7,7 +7,11 @@
 	
 	<title>index</title>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>
-	<script type="text/javascript" src="main.js"></script>
+	<!--<script type="text/javascript" src="venscrollbar-2.0.min.js"></script>-->
+	<script type="text/javascript" src="venscrollbar.js"></script>
+	
+	<!--<script type="text/javascript" src="themes/ios/theme.js"></script>-->
+	<!--<link type="text/css" rel="stylesheet" href="themes/ios/theme.css" />-->
 
 	<style type="text/css">
 		#box 
@@ -21,7 +25,7 @@
 	
 	</style>
 
-	<style type="text/css">
+	<!--<style type="text/css">
 		
 		.ybar
 		{
@@ -80,7 +84,7 @@
 			bottom: 0;
 		}
 		
-	</style>
+	</style>-->
 
 	<!--Custom cursors will not be supported in IE. Too much work for a feature that
 		probably won't be used very often.-->
@@ -114,11 +118,28 @@
 		$(document).ready(function () {
 
 			// $("*") does not work in IE7.
-			$("body *").VenScrollBar({
-				wheelLock: true,
-				lag: 60
+			$("body *").venScrollbar(function (data) {
+				//console.log(this, data);
 			});
+
+//			$("body *").venScrollbar(options, function(data) {
+//				var $this = $(this);
+//				
+//				
+//				data.options.overflow.y = "auto";
+
+//				data.scroll(1, data.options.delta.big);
+//				data.refresh();
+
+//			});
+
+//			$.fn.venScrollbar.refresh("body *");
+
+//			$("#box").data("venScrollbar").refresh();
+
 		});
+
+		
 
 	</script>
 </head>
@@ -135,7 +156,7 @@
 			aliquet, magna ac vulputate eleifend, quam dolor varius felis, ut egestas risus arcu nec velit.
 			Nullam dapibus ullamcorper magna ac facilisis. Proin ac nibh ante, sed fermentum ligula.
 			Suspendisse feugiat felis non nisi lobortis dignissim in a turpis. Aenean consectetur nibh ac augue
-			viverra congue.<div id="item3">Item 3</div>
+			viverra congue.<div id="item3">Item 3</div><a href="http://www.google.com">Google</a>
 
 			Sed odio libero, tincidunt vel tincidunt et, interdum sed velit. Fusce vulputate pellentesque ante,
 			id accumsan diam iaculis id. Nulla leo risus, ultrices nec fermentum in, consectetur ac est.
