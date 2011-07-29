@@ -7,11 +7,13 @@
 	
 	<title>index</title>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>
-	<!--<script type="text/javascript" src="venscrollbar-2.0.min.js"></script>-->
+	<!--<script type="text/javascript" src="venscrollbar-2.0.0.min.js"></script>-->
 	<script type="text/javascript" src="venscrollbar.js"></script>
 	
 	<!--<script type="text/javascript" src="themes/ios/theme.js"></script>-->
 	<!--<link type="text/css" rel="stylesheet" href="themes/ios/theme.css" />-->
+
+	<link href="store/jquery-ui-1.8.14/css/smoothness/jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
 
 	<style type="text/css">
 		#box 
@@ -22,6 +24,11 @@
 			margin-bottom: 100px;
 			border: 1px solid white;
 		}
+		
+		/*.venscrollbar-ui-bar-y 
+		{
+			height: 100px;
+		}*/
 	
 	</style>
 
@@ -118,8 +125,9 @@
 		$(document).ready(function () {
 
 			// $("*") does not work in IE7.
-			$("body *").venScrollbar(function (data) {
-				//console.log(this, data);
+			$("body *").venScrollbar({
+				themeRoller: true,
+				wheelLock: true
 			});
 
 //			$("body *").venScrollbar(options, function(data) {
