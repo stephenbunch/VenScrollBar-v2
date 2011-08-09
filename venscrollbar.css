@@ -1,0 +1,54 @@
+﻿/* Needs to have a position other than static. */
+.venscrollbar-root
+{
+	position: relative;
+}
+
+.venscrollbar-viewport
+{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 0;
+	overflow: hidden;
+}
+
+.venscrollbar-body
+{
+	position: absolute;
+	min-height: 100%;
+	min-width: 100%;
+}
+
+.venscrollbar-ui-bar-x
+{
+	position: absolute;
+	bottom: 0;
+	height: 14px;
+}
+
+.venscrollbar-ui-bar-y
+{
+	position: absolute;
+	right: 0;
+	width: 14px;
+}
+
+.venscrollbar-ui-track-x
+{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 14px;
+}
+
+.venscrollbar-ui-track-y
+{
+	position: absolute;
+	bottom: 0;
+	top: 0;
+	right: 0;
+	width: 14px;
+}
