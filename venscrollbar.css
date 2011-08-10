@@ -1,4 +1,13 @@
-﻿/* Needs to have a position other than static. */
+﻿/**
+ * venScrollbar jQuery Plugin v2.0.0
+ * http://codecanyon.net/item/venscrollbar-a-jquery-scrollbar-plugin/118911
+ * 
+ * Copyright 2011, Stephen Bunch
+ *
+ * August 2011
+ */
+
+/* needs to have a position other than static */
 .venscrollbar-root
 {
 	position: relative;
@@ -21,34 +30,20 @@
 	min-width: 100%;
 }
 
-.venscrollbar-ui-bar-x
-{
-	position: absolute;
-	bottom: 0;
-	height: 14px;
-}
+/* scrollbar containers */
+.venscrollbar-ui-x { position: absolute; bottom: 0; left: 18px; right: 18px; height: 18px; }
+.venscrollbar-ui-y { position: absolute; right: 0; top: 18px; bottom: 18px; width: 18px; }
 
-.venscrollbar-ui-bar-y
-{
-	position: absolute;
-	right: 0;
-	width: 14px;
-}
+/* bars and tracks */
+.venscrollbar-ui-bar, .venscrollbar-ui-track { position: absolute; }
+.venscrollbar-ui-x > .venscrollbar-ui-bar { height: 16px; }
+.venscrollbar-ui-y > .venscrollbar-ui-bar { width: 16px; }
+.venscrollbar-ui-x > .venscrollbar-ui-track { height: 16px; left: 0; right: 0; }
+.venscrollbar-ui-y > .venscrollbar-ui-track { width: 16px; top: 0; bottom: 0; }
 
-.venscrollbar-ui-track-x
-{
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 14px;
-}
-
-.venscrollbar-ui-track-y
-{
-	position: absolute;
-	bottom: 0;
-	top: 0;
-	right: 0;
-	width: 14px;
-}
+/* arrows */
+.venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right { position: absolute; height: 16px; width: 16px; }
+.venscrollbar-ui-up { top: 0; right: 0; }
+.venscrollbar-ui-down { bottom: 0; right: 0; }
+.venscrollbar-ui-left { bottom: 0; left: 0; }
+.venscrollbar-ui-right { bottom: 0; right: 0; }
