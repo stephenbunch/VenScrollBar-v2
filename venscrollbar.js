@@ -17,9 +17,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		"anchor": true,				// handle anchor link click events
 
 		"delta": {					// scroll increments in pixels
-			"small": 5,
-			"medium": 10,
-			"large": 15
+			"small": 40,
+			"large": 100
 		},
 
 		"drag": false, 				// use the mouse to drag the body around
@@ -43,19 +42,20 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		"touch": true,				// enable touch support
 		"wheel": true,				// enable mousewheel support
 		"wheelLock": false 			// disable mousewheel from scrolling the page
-	},
+	};
 
 	// Merge two objects recursively, modifying the first.
-	set = $.extend( true, defaults, settings );
+	settings = $.extend( true, defaults, settings );
 
 	return this.each(function() {
 		var valid = ["auto", "scroll"],
 			root = $( this ),
 			body,
+			viewport,
 			xBar,
 			yBar,
 			controls,
-			opt = $.extend( true, $.extend( true, { }, set ), {
+			opt = $.extend( true, $.extend( true, { }, settings ), {
 				"overflow": {
 					"x": root.css( "overflow-x" ),
 					"y": root.css( "overflow-y" )
@@ -73,8 +73,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		body = viewport.children();
 
 		// Append each container element to the wrapper.
-		var cursor = root;
-		$.each( "ui > ui-x ui-y > ui-track ui-bar < ui-up ui-down ui-left ui-right".split( " " ), function ( index, value ) {
+		var cursor = $( "<div class='venscrollbar-ui'>" ).appendTo( root );
+		$.each( "ui-x ui-y > ui-track ui-bar < ui-up ui-down ui-left ui-right".split( " " ), function ( index, value ) {
 			if ( value === ">" ) {
 				cursor = cursor.children();
 			} else if ( value === "<" ) {
@@ -122,7 +122,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				var	me = this,
 					guid = $.guid++,
 
-					// Selectors
+					// Selectors.
 					wrap = controls.children().eq( axis - 1 ),
 					bar = $( "> .venscrollbar-ui-bar", wrap ),
 					track = $( "> .venscrollbar-ui-track", wrap ),
@@ -175,12 +175,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					}),
 
 					// Scrollbar { height | width } depending on axis.
-					size = Property( 0, function() {
+					size = Property( 0, nil, function( value ) {
 						if ( axis === 1 ) {
-							bar.width( size() - ( bar.outerWidth() - bar.width() ) );
+							bar.width( value - ( bar.outerWidth() - bar.width() ) );
 						} else {
-							bar.height( size() - ( bar.outerHeight() - bar.height() ) );
+							bar.height( value - ( bar.outerHeight() - bar.height() ) );
 						}
+						return value;
 					}),
 
 					updateStyle = function() {
@@ -228,6 +229,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 							size( me.ratio * viewport[ inner ]() );
 							limit( range - size() );
 						}
+
+						me.pageSize = viewport[ inner ]();
 
 						// Update isEnabled.
 						isEnabled( body[ outer ]() > viewport[ inner ]() );
@@ -323,60 +326,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// ThemeRoller support.
 					themeRoller = Property( false, function() {
 						if ( themeRoller() ) {
-							bar
-								.addClass( "ui-state-default" + ( axis === 2 ? " ui-flip" : "" ) )
-								.bind( "mouseenter.venScrollbar-ui",  function() {
-									$( this ).addClass( "ui-state-hover" );
-								})
-								.bind( "mouseleave.venScrollbar-ui", function() {
-									$( this ).removeClass( "ui-state-hover" );
-								})
-								.bind( "mousedown.venScrollbar-ui", function() {
-									$( this ).addClass( "ui-state-active" );
-								});
-
-							arrows
-								.addClass( "ui-state-default" + ( axis === 2 ? " ui-flip" : "" ) )
-								.bind( "mouseenter.venScrollbar-ui", function() {
-									$( this ).addClass( "ui-state-hover" );
-									if ( $( this ).data( "venScrollbar:isMouseDown" ) ) {
-										$( this ).addClass( "ui-state-active" );
-									}
-								})
-								.bind( "mouseleave.venScrollbar-ui", function() {
-									$( this ).removeClass( "ui-state-hover ui-state-active" );
-								})
-								.bind( "mousedown.venScrollbar-ui", function() {
-									$( this ).addClass( "ui-state-active" ).data( "venScrollbar:isMouseDown", true );
-								});
-
-							uiRoot.bind( "mouseup.venScrollbar-ui-" + guid, function() {
-								bar.removeClass( "ui-state-active" );
-								next.data( "venScrollbar:isMouseDown", false ).removeClass( "ui-state-active" );
-								prev.data( "venScrollbar:isMouseDown", false ).removeClass( "ui-state-active" );
-							});
-
-							$( "<span>" )
-								.addClass( "ui-icon ui-icon-grip-solid-" + ( axis === 1 ? "vertical" : "horizontal" ) )
-								.css({
-									"bottom": 0,
-									"left": 0,
-									"right": 0,
-									"top": 0,
-									"margin": "auto",
-									"position": "absolute"
-								})
-								.appendTo( bar );
-
-							track.addClass( "ui-widget-content" + ( axis === 2 ? " ui-flip" : "" ) );
-							prev.append( "<span class='ui-icon ui-icon-triangle-1-" + ( axis === 1 ? "w" : "n" ) + "'>" );
-							next.append( "<span class='ui-icon ui-icon-triangle-1-" + ( axis === 1 ? "e" : "s" ) + "'>" );
 							uiStyles.enable();
-
 						} else {
-							bar.removeClass( "ui-state-default" ).unbind( ".venScrollbar-ui" );
-							track.removeClass( "ui-widget-content" );
-							uiRoot.unbind( "mouseup.venScrollbar-ui-" + guid );
 							uiStyles.disable();
 						}
 					}),
@@ -451,6 +402,9 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					return next;
 				};
 
+				// Used for page-ups and page-downs.
+				me.pageSize = 0;
+
 				// Constructor code.
 				fn.selectMode( wrap, false );
 				fn.selectMode( next, false );
@@ -458,11 +412,11 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				fn.selectMode( track, false );
 
 				Sink.click.hook( next, function (e) {
-					me.val( me.val() + opt["delta"]["small"] );
+					me.val( me.val() + opt["delta"]["small"] * me.ratio );
 				});
 
 				Sink.click.hook( prev, function() {
-					me.val( me.val() - opt["delta"]["small"] );
+					me.val( me.val() - opt["delta"]["small"] * me.ratio );
 				});
 
 				Sink.click.hook( track, function ( e ) {
@@ -470,10 +424,10 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						offset = bar.offset()[ axis === 1 ? "left" : "top" ];
 
 					if ( page < offset ) {
-						me.val( me.val() - opt["delta"]["large"] );
+						me.val( me.val() - me.pageSize * me.ratio );
 
 					} else if ( page > offset + bar[ axis === 1 ? "outerWidth" : "outerHeight" ]() ) {
-						me.val( me.val() + opt["delta"]["large"] );
+						me.val( me.val() + me.pageSize * me.ratio );
 
 					} else {
 						// Stop scrolling.
@@ -525,15 +479,20 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			wheel = Property( false, function() {
 				if ( wheel() ) {
 					wheel.cookie = Sink.mousewheel.hook( root, function ( e ) {
+						// Don't override the zoom accessibility feature.
+						if ( e.ctrlKey ) {
+							return;
+						}
+						
 						stopInertial();
 						// Wake from idle.
 						wake();
 
 						var ui = e.shiftKey || e.axis === 1 ? xBar : yBar,
-							hasChanged = ui.val( ui.val() + opt["delta"]["medium"] * (e.wheelDelta < 0 ? 1 : -1) );
+							hasChanged = ui.val( ui.val() + opt["delta"]["large"] * ui.ratio * (e.wheelDelta < 0 ? 1 : -1) );
 
 						if ( opt["wheelLock"] || hasChanged ) {
-							e.preventDefault();
+							e["consume"]();
 						}
 					});
 
@@ -572,32 +531,32 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 						var hasChanged = false,
 							key = e.keyCode,
-							large = opt["delta"]["large"],
 							small = opt["delta"]["small"];
 
 						hasChanged =
 							// spacebar
-							key === 32 ? yBar.val( yBar.val() + large * ( e.shiftKey ? -1 : 1 ) ) :
+							key === 32 ? yBar.val( yBar.val() + yBar.pageSize * yBar.ratio * ( e.shiftKey ? -1 : 1 ) ) :
 							// pageup
-							key === 33 ? yBar.val( yBar.val() - large ) :
+							key === 33 ? yBar.val( yBar.val() - yBar.pageSize * yBar.ratio ) :
 							// pagedown
-							key === 34 ? yBar.val( yBar.val() + large ) :
+							key === 34 ? yBar.val( yBar.val() + yBar.pageSize * yBar.ratio ) :
 							// end
 							key === 35 ? yBar.end() :
 							// home
 							key === 36 ? yBar.val( 0 ) :
 							// left
-							key === 37 ? xBar.val( xBar.val() - small ) :
+							key === 37 ? xBar.val( xBar.val() - small * xBar.ratio ) :
 							// up
-							key === 38 ? yBar.val( yBar.val() - small ) :
+							key === 38 ? yBar.val( yBar.val() - small * yBar.ratio ) :
 							// right
-							key === 39 ? xBar.val( xBar.val() + small ) :
+							key === 39 ? xBar.val( xBar.val() + small * xBar.ratio ) :
 							// down
-							key === 40 ? yBar.val( yBar.val() + small ) :
+							key === 40 ? yBar.val( yBar.val() + small * yBar.ratio ) :
 							false;
 
 						if ( hasChanged || ( opt["wheelLock"] && key > 31 && key < 41 ) ) {
 							e.preventDefault();
+							e.stopPropagation();
 						}
 					});
 
@@ -799,6 +758,7 @@ var	isIE = !$.support.changeBubbles,
 	 */
 	Property = function ( initialValue, onChange, set ) {
 		set = set || $.noop;
+		onChange = onChange || $.noop;
 
 		return function ( value ) {
 			if ( value === undefined ) {
@@ -823,6 +783,8 @@ var	isIE = !$.support.changeBubbles,
 	Sink = function ( hook, unhook ) {
 		var store = {};
 		return {
+			store: store,
+
 			hook: function ( target, callback ) {
 				return hook.apply( store, [ ( $.guid++ ).toString() ].concat( $.makeArray( arguments ) ) );
 			},
@@ -837,7 +799,7 @@ var	isIE = !$.support.changeBubbles,
 	uiStyles = (function() {
 		
 		var	styleRules = [],
-			isLoading = false
+			isLoading = false,
 			elem = $(),
 			count = 4,
 			users = 0,
@@ -909,38 +871,45 @@ var	isIE = !$.support.changeBubbles,
 	Sink.mousewheel = Sink( function ( cookie, target, callback ) {
 		var	elem = fn.unbox( target ),
 			callbackWrapper = function ( e ) {
-			e = e || window.event;
+				e = e || window.event;
+			
+				var event = {
+					shiftKey: e.shiftKey,
+					ctrlKey: e.ctrlKey,
 
-			var event = {
-				shiftKey: e.shiftKey,
+					// Normalize values: -1 -> down, 1 -> up.
+					// IE uses e.wheelDelta. Everyone else uses e.detail.
+					wheelDelta:
+							e.wheelDelta ?
+								e.wheelDelta > 0 ? 1 :
+								e.wheelDelta < 0 ? -1 :
+								0 :
+							e.detail ?
+								e.detail > 0 ? -1 :
+								e.detail < 0 ? 1 :
+								0 :
+							0,
 
-				// Normalize values: -1 -> down, 1 -> up.
-				// IE uses e.wheelDelta. Everyone else uses e.detail.
-				wheelDelta:
-						e.wheelDelta ?
-							e.wheelDelta > 0 ? 1 :
-							e.wheelDelta < 0 ? -1 :
-							0 :
-						e.detail ?
-							e.detail > 0 ? -1 :
-							e.detail < 0 ? 1 :
-							0 :
-						0,
+					"consume": function() {
+						// Keep the document from scrolling.
+						// IE9, Chrome, Safari, Firefox, Opera.
+						if ( e.preventDefault ) {
+							e.preventDefault();
+						}
+						// IE 8.
+						e.cancel = true;
+						// IE 7.
+						e.returnValue = false;
 
-				// Provide an easier interface for preventing the document from scrolling.
-				preventDefault: function() {
-					// IE9, Chrome, Safari, Firefox, Opera.
-					if ( e.preventDefault ) {
-						e.preventDefault();
-					}
-					// IE 8.
-					e.cancel = true;
-					// IE 7.
-					e.returnValue = false;
-				},
+						// Keep the event from bubbling up.
+						if ( e.stopPropagation ) {
+							e.stopPropagation();
+						}
+						e.cancelBubble = true;
+					},
 
-				// Firefox uses e.axis. Webkit uses e.wheelDeltaX.
-				axis: e.axis ? e.axis : e.wheelDeltaX ? 1 : 2
+					// Firefox uses e.axis. Webkit uses e.wheelDeltaX.
+					axis: e.axis ? e.axis : e.wheelDeltaX ? 1 : 2
 			};
 
 			// Invoke the user's event handler, passing the custom event object.
@@ -1218,12 +1187,14 @@ var	isIE = !$.support.changeBubbles,
 		delete this[cookie];
 	});
 
+	// Enhanced click event.
 	Sink.click = Sink( function ( cookie, elem, callback ) {
 		var timeoutID = 0,
 			isFirstRun = true,
 			isPaused = false,
 			isStarted = false,
 			isCancelled = false,
+			$elem = $( elem ),
 			event,
 			run = function () {
 				isStarted = true;
@@ -1243,7 +1214,7 @@ var	isIE = !$.support.changeBubbles,
 				isPaused = false;
 				isStarted = false;
 				isCancelled = false;
-				$( elem ).unbind( "mousemove.venScrollbar-click" );
+				$elem.unbind( "mousemove.venScrollbar-click" );
 			},
 			
 			pause = function() {
@@ -1251,8 +1222,15 @@ var	isIE = !$.support.changeBubbles,
 				isPaused = true;
 			};
 
-		$( elem )
+		$elem
 			.bind( "mousedown.venScrollbar-click", function ( e ) {
+				$elem.bind( "mousemove.venScrollbar-click", function ( e ) {
+					event = e;
+					if ( isCancelled ) {
+						isCancelled = false;
+						run();
+					}
+				});
 				event = e;
 				run();
 			})
@@ -1267,20 +1245,18 @@ var	isIE = !$.support.changeBubbles,
 					event = e;
 					run();
 				}
-			})
-			.bind( "mousemove.venScrollbar-click", function ( e ) {
-				event = e;
-				if ( isCancelled ) {
-					isCancelled = false;
-					run();
-				}
 			});
 
 		uiRoot.bind( "mouseup.venScrollbar-click", stop );
 
+		this[ cookie ] = elem;
 		return cookie;
+
 	}, function ( cookie ) {
-	
+		if ( elem = this[cookie] ) {
+			$( elem ).unbind( "venScrollbar-click" );
+			delete this[cookie];
+		}
 	});
 
 })( jQuery, window, null );

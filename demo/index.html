@@ -22,7 +22,28 @@
 		
 		body 
 		{
-			font: 16px/1.5em Georgia;
+			font: 16px/1.5em "Trebuchet MS", Arial, sans;
+		}
+		
+		h1
+		{
+			margin-top: 0;
+			text-shadow: 2px 2px 2px #cccccc;
+		}
+		
+		h1 sup
+		{
+			background: #fcfcfc;
+			border: 3px solid #666666;
+			border-radius: 10px;
+			padding: 5px;
+		}
+		
+		h3
+		{
+			padding-bottom: 0.6em;
+			border-bottom: 2px solid #999999;
+			margin-bottom: 1.5em;
 		}
 		
 		#root 
@@ -35,29 +56,130 @@
 		#content-wrapper
 		{
 			background: #eeeeee;
-			margin: 0 auto;
+			margin: 0 auto 20px;
 			width: 900px;
+			border-radius: 0 0 10px 10px;
+			border: 3px solid #e3e3e3;
+			border-top: none;
 		}
 		
 		#content 
 		{
-			margin: 0 10px;
+			padding: 20px;
 		}
 		
-		/*#root .venscrollbar-ui-track-y, #root .venscrollbar-ui-track-x
+		h3.tag
 		{
-			display: none !important;
-		}/*
+			font-style: italic;
+		}
+		
+		.right
+		{
+			text-align: right;
+		}
+		
+		.small
+		{
+			font-size: 0.75em;
+		}
+		
+		.last
+		{
+			margin-bottom: 3em;
+		}
+		
+		.inner
+		{
+			padding: 0 1em;
+		}
+		
+		.text
+		{
+			font-size: 0.9em;
+		}
+		
+		ul.focusarea
+		{
+			background: #fcfcfc;
+			border-radius: 10px;
+			border: 3px solid #666666;
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+		
+		.scrollable
+		{
+			height: 200px;
+			width: 400px;
+			overflow: auto;
+		}
+		
+		.demo
+		{
+			margin: 1em 0;
+		}
+		
 	</style>
 
 	<script type="text/javascript">
-		$(function(){
-			$("#root").venScrollbar({
+		$(function() {
+
+			$( "#root, div.scrollable" ).venScrollbar({
 				themeRoller: true,
-				wheelLock: true
-			}, function() {
-				console.log("ready");
+				fx: {
+					smooth: true
+				}
+
+			}, function( data ) {
+				var bars = $( ".venscrollbar-ui-x .venscrollbar-ui-bar, .venscrollbar-ui-y .venscrollbar-ui-bar", this )
+					.addClass( "ui-state-default" )
+					.eq( 1 ).addClass( "ui-flip" )
+					.end()
+					.hover( function() {
+						$( this ).addClass( "ui-state-hover" );
+					}, function() {
+						$( this ).removeClass( "ui-state-hover" );
+					})
+					.mousedown( function() {
+						$( this ).addClass( "ui-state-active" );
+					})
+					.each( function ( index ) {
+						$( this ).append( "<span class='ui-icon ui-icon-grip-solid-" + ( index === 0 ? "vertical" : "horizontal" ) + "' style='bottom:0;left:0;right:0;top:0;margin:auto;position:absolute'>" );
+					});
+
+				var arrows = $( ".venscrollbar-ui-left, .venscrollbar-ui-right, .venscrollbar-ui-up, .venscrollbar-ui-down", this )
+					.addClass( "ui-state-default" )
+					.slice( 2 )
+					.addClass( "ui-flip" )
+					.end()
+					.hover( function() {
+						$( this ).addClass( "ui-state-hover" );
+						if ( $( this ).data( "isMouseDown" ) ) {
+							$( this ).addClass( "ui-state-active" );
+						}
+					}, function() {
+						$( this ).removeClass( "ui-state-hover ui-state-active" );
+					})
+					.mousedown( function() {
+						$( this ).addClass( "ui-state-active" ).data( "isMouseDown", true );
+					})
+					.each( function ( index ) {
+						$( this ).append( "<span class='ui-icon ui-icon-triangle-1-" + ( index === 0 ? "n" : index === 1 ? "s" : index === 2 ? "w" : "e" ) + "'>" );
+					});
+
+				$( !$.support.changeBubbles ? document : window ).bind( "mouseup.ui-" + ( $.guid++ ), function() {
+					bars.removeClass( "ui-state-active" );
+					arrows.data( "isMouseDown", false ).removeClass( "ui-state-active" );
+				});
+
+				$( ".venscrollbar-ui-x .venscrollbar-ui-track, .venscrollbar-ui-y .venscrollbar-ui-track", this )
+					.addClass( "ui-widget-content" )
+					.eq( 1 )
+					.addClass( "ui-flip" );
+
+				data.refresh();
 			});
+
 		});	
 		
 	</script>
@@ -69,7 +191,56 @@
 
 		<div id="content-wrapper">
 			<div id="content">
-				 Tri-tip shank venison hamburger. Tri-tip t-bone short loin swine, ham hock pancetta andouille meatball. Rump flank turkey ground round tail beef ribs, beef jowl biltong pork loin sirloin chuck bresaola. Pork chop drumstick ham hock spare ribs short loin, ground round salami ball tip brisket cow strip steak swine pork loin beef pork belly. Cow pork belly ball tip, meatloaf brisket pork chop salami boudin bacon turkey t-bone strip steak pig jerky. Andouille meatball pork belly turkey swine ground round. Jerky chuck beef, swine cow spare ribs salami jowl shank tongue ground round ribeye.  Spare ribs pork swine, meatball flank hamburger biltong ball tip. Chicken bacon pork chop pancetta ham hock ball tip. Ribeye drumstick pancetta jowl tenderloin spare ribs, pastrami pork belly meatball ground round. Sirloin jowl rump, biltong turkey pork loin swine sausage brisket pork chop cow short ribs meatloaf chuck. Ball tip sirloin sausage meatloaf pork belly strip steak. Brisket beef cow, ball tip venison salami jowl biltong. Spare ribs swine tail pork belly.  Boudin shank short ribs bacon pancetta drumstick. Pork chop sausage pork belly, ribeye venison boudin beef ribs pig meatloaf t-bone. Rump hamburger t-bone shank ball tip tongue, shoulder venison bresaola brisket. Ball tip meatball ham, pancetta meatloaf turkey ribeye chicken pig. Tenderloin shoulder salami, tail sausage ham hock shankle pig. Pork loin fatback bresaola, tail tenderloin ball tip ribeye. Pork belly t-bone fatback ham, pork chop meatloaf chuck pork loin ham hock shankle.  Spare ribs andouille t-bone, bresaola meatloaf strip steak pork belly ham hock shoulder sirloin biltong ham chuck jowl salami. Ham hock pancetta shank, pig bacon beef ribs chicken salami drumstick. Pork chop tenderloin pig shankle pancetta. Ball tip ham hock pig meatloaf turkey salami. Short ribs boudin jerky, hamburger tongue jowl pork belly tail tri-tip salami. Tenderloin flank shank pork drumstick, cow sirloin meatloaf. Beef ribs pork chop tongue, flank tenderloin rump hamburger pork loin ground round ham shankle spare ribs salami pastrami.  Beef ribs rump shank, sirloin pork loin corned beef pork belly chicken pork chop andouille tail. Ribeye shoulder corned beef pork chop, short ribs t-bone swine tri-tip jerky ham hock. Ball tip shoulder pastrami chuck. Cow jerky chicken, fatback andouille beef tri-tip ball tip beef ribs flank shankle ribeye biltong sausage pork loin. Pork ham hock bresaola pancetta jowl. Shank boudin corned beef, shankle beef ribs t-bone sirloin ground round short ribs pork chop turkey jowl cow. Ribeye drumstick beef ribs shankle, sausage shank tri-tip jerky meatball strip steak pork swine chuck venison shoulder.
+				 <h1>venScrollbar() <sup>v2.0</sup></h1>
+				 <h3 class="tag">A jQuery Scrollbar Plugin</h3>
+				 <div class="inner">
+					<p>
+					Version 2 introduces some exciting new features!
+					 </p>
+					 <div class="inner">
+						<ul class="focusarea text">
+							<li>horizontal scrolling</li>
+							<li>iOS (iPhone|iPad) support</li>
+							<li>fluid layout (refreshes size automatically)</li>
+							<li>inertial scrolling</li>
+							<li>jQuery UI ThemeRoller support</li>
+							<li>keyboard support</li>
+							<li>anchor support</li>
+							<li>draggable</li>
+							<li>fixed bar size</li>
+							<li>laggy interface (like Google Wave)</li>
+						</ul>
+					 </div>
+					<p>
+						Existing features:
+					</p>
+					<ul class="text">
+						<li>auto hide</li>
+						<li>mousewheel support</li>
+						<li>smooth scroll</li>
+						<li>auto scroll when selecting text</li>
+						<li>complete bar, track, and arrow support</li>
+					</ul>
+					<p class="last">
+						And of course, the best feature is that it's <b>themeable!</b>
+					</p>
+				 </div>
+				<h3>New Themes!</h3>
+				<div id="google" class="demo">
+					<h4>Google</h4>
+					<div class="scrollable">
+					Andouille pastrami pancetta jowl, meatloaf bresaola pork chop tongue boudin shoulder pork belly. Tenderloin swine spare ribs, t-bone cow bacon corned beef jerky short ribs tri-tip sausage. Pancetta tenderloin turkey, shankle shank brisket ball tip tail drumstick. Beef strip steak turkey, corned beef pork chicken bacon swine jowl. Pork loin pancetta ham hock shankle jowl. Beef ribs chicken meatloaf pork belly andouille pastrami. Chicken ground round tri-tip tail meatball, short ribs pork belly pork salami corned beef shoulder tongue jerky.
+					</div>
+					<div class="code"></div>
+				</div>
+				<div id="ios" class="demo">
+					<h4>iOS</h4>
+					<div class="scrollable">
+					Andouille pastrami pancetta jowl, meatloaf bresaola pork chop tongue boudin shoulder pork belly. Tenderloin swine spare ribs, t-bone cow bacon corned beef jerky short ribs tri-tip sausage. Pancetta tenderloin turkey, shankle shank brisket ball tip tail drumstick. Beef strip steak turkey, corned beef pork chicken bacon swine jowl. Pork loin pancetta ham hock shankle jowl. Beef ribs chicken meatloaf pork belly andouille pastrami. Chicken ground round tri-tip tail meatball, short ribs pork belly pork salami corned beef shoulder tongue jerky.
+					</div>
+					<div class="code"></div>
+				</div>
+				 <div class="small right">Copyright © 2011, Stephen Bunch. All rights reserved.</div>
 			</div>
 		</div>
 
