@@ -11,6 +11,9 @@
 
 	<link href="jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
 	<link href="../venscrollbar.css" rel="stylesheet" type="text/css" />
+	<link href="../themes/google/google.css" rel="stylesheet" type="text/css" />
+	<link href="../themes/ios/ios.css" rel="stylesheet" type="text/css" />
+	<link href="../themes/ios/lion.css" rel="stylesheet" type="text/css" />
 
 	<style type="text/css">
 		html, body 
@@ -119,60 +122,42 @@
 			margin: 1em 0;
 		}
 		
+		.bigger
+		{
+			width: 800px;
+		}
+		
 	</style>
 
 	<script type="text/javascript">
 		$(function() {
-
-			$( "#root, div.scrollable" ).venScrollbar({
-				themeRoller: true,
+			
+			$.fn.venScrollbar.defaults = {
 				fx: {
 					smooth: true
 				}
+			};
 
-			}, function( data ) {
-				var bars = $( ".venscrollbar-ui-x .venscrollbar-ui-bar, .venscrollbar-ui-y .venscrollbar-ui-bar", this )
+			$( "#root" ).venScrollbar({
+				themeRoller: true
+
+			}, function( data, ui ) {
+				var	bars = $( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui )
 					.addClass( "ui-state-default" )
-					.eq( 1 ).addClass( "ui-flip" )
-					.end()
-					.hover( function() {
-						$( this ).addClass( "ui-state-hover" );
-					}, function() {
-						$( this ).removeClass( "ui-state-hover" );
-					})
-					.mousedown( function() {
-						$( this ).addClass( "ui-state-active" );
-					})
 					.each( function ( index ) {
 						$( this ).append( "<span class='ui-icon ui-icon-grip-solid-" + ( index === 0 ? "vertical" : "horizontal" ) + "' style='bottom:0;left:0;right:0;top:0;margin:auto;position:absolute'>" );
-					});
+					})
+					.eq( 1 ).addClass( "ui-flip" );
 
-				var arrows = $( ".venscrollbar-ui-left, .venscrollbar-ui-right, .venscrollbar-ui-up, .venscrollbar-ui-down", this )
+				var arrows = $( ".venscrollbar-ui-left, .venscrollbar-ui-right, .venscrollbar-ui-up, .venscrollbar-ui-down", ui )
 					.addClass( "ui-state-default" )
-					.slice( 2 )
-					.addClass( "ui-flip" )
-					.end()
-					.hover( function() {
-						$( this ).addClass( "ui-state-hover" );
-						if ( $( this ).data( "isMouseDown" ) ) {
-							$( this ).addClass( "ui-state-active" );
-						}
-					}, function() {
-						$( this ).removeClass( "ui-state-hover ui-state-active" );
-					})
-					.mousedown( function() {
-						$( this ).addClass( "ui-state-active" ).data( "isMouseDown", true );
-					})
 					.each( function ( index ) {
 						$( this ).append( "<span class='ui-icon ui-icon-triangle-1-" + ( index === 0 ? "n" : index === 1 ? "s" : index === 2 ? "w" : "e" ) + "'>" );
-					});
-
-				$( !$.support.changeBubbles ? document : window ).bind( "mouseup.ui-" + ( $.guid++ ), function() {
-					bars.removeClass( "ui-state-active" );
-					arrows.data( "isMouseDown", false ).removeClass( "ui-state-active" );
-				});
-
-				$( ".venscrollbar-ui-x .venscrollbar-ui-track, .venscrollbar-ui-y .venscrollbar-ui-track", this )
+					})
+					.slice( 2 )
+					.addClass( "ui-flip" );
+					
+				$( ".venscrollbar-ui-x-track, .venscrollbar-ui-y-track", ui )
 					.addClass( "ui-widget-content" )
 					.eq( 1 )
 					.addClass( "ui-flip" );
@@ -180,7 +165,25 @@
 				data.refresh();
 			});
 
-		});	
+			$( "#google > div.scrollable" ).venScrollbar(function ( data, ui ) {
+				$( ".venscrollbar-ui-y-bar, .venscrollbar-ui-up, .venscrollbar-ui-down", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
+				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
+				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui ).append( "<div class='grip'>" );
+				$( ".venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='decor'>" );
+			});
+
+			$( "#ios > div.scrollable" ).venScrollbar({
+				drag: true,
+				fx: {
+					autoHide: true,
+					overlay: true
+				}
+
+			}, function ( data, ui ) {
+				$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
+				$( ".venscrollbar-ui-x-bar", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
+			});
+		});
 		
 	</script>
 
@@ -228,15 +231,24 @@
 				<h3>New Themes!</h3>
 				<div id="google" class="demo">
 					<h4>Google</h4>
-					<div class="scrollable">
-					Andouille pastrami pancetta jowl, meatloaf bresaola pork chop tongue boudin shoulder pork belly. Tenderloin swine spare ribs, t-bone cow bacon corned beef jerky short ribs tri-tip sausage. Pancetta tenderloin turkey, shankle shank brisket ball tip tail drumstick. Beef strip steak turkey, corned beef pork chicken bacon swine jowl. Pork loin pancetta ham hock shankle jowl. Beef ribs chicken meatloaf pork belly andouille pastrami. Chicken ground round tri-tip tail meatball, short ribs pork belly pork salami corned beef shoulder tongue jerky.
+					<div class="scrollable google">
+						<div class="bigger">
+							Pastrami turducken shankle drumstick, frankfurter pig andouille sirloin ground round kielbasa pork belly. Ham beef pork belly ball tip. Ribeye pancetta chuck turkey, boudin shankle kielbasa pork loin meatloaf ground round short loin leberkäse. Pork belly tenderloin biltong, jowl turducken tri-tip corned beef flank pastrami. Swine shank tongue andouille, rump pork ground round frankfurter drumstick salami pork chop. Pork tenderloin t-bone, pork belly sausage salami bresaola kielbasa beef turducken strip steak fatback. Beef shoulder bacon short ribs strip steak, tail t-bone ground round chicken pancetta short loin ball tip.
+							<br /><br />
+Rump tenderloin corned beef sausage, filet mignon tri-tip ham hock chicken cow venison ham drumstick leberkäse hamburger. Capicola chuck corned beef, swine pork rump shoulder pastrami pancetta biltong salami. Venison capicola beef, pork chop ground round jowl drumstick short loin turducken pancetta shoulder salami. Pork chop pork capicola pancetta, ham hock turkey ball tip ground round. Pork spare ribs bresaola, tenderloin filet mignon bacon tail drumstick beef ribs turducken chicken salami rump. Meatball short loin prosciutto, tongue tail pork chop tenderloin ham hock brisket shoulder pig ground round corned beef pork belly venison. Tenderloin turducken flank frankfurter bresaola.
+							<br /><br />
+Shoulder pork chop filet mignon, leberkäse biltong cow bacon swine. Jowl tenderloin tri-tip, rump bresaola shank pork chop spare ribs ribeye fatback. Ribeye meatloaf chuck flank, jerky cow pork beef ribs pig ham fatback kielbasa shoulder. Capicola salami pastrami, ground round brisket kielbasa pig shoulder drumstick shank pork belly t-bone. Pork belly frankfurter flank drumstick, salami kielbasa short loin pork ham hock. Ball tip turkey pancetta strip steak boudin beef ribs. Tenderloin chicken pork short ribs meatball tail.
+						</div>
 					</div>
 					<div class="code"></div>
 				</div>
 				<div id="ios" class="demo">
 					<h4>iOS</h4>
-					<div class="scrollable">
-					Andouille pastrami pancetta jowl, meatloaf bresaola pork chop tongue boudin shoulder pork belly. Tenderloin swine spare ribs, t-bone cow bacon corned beef jerky short ribs tri-tip sausage. Pancetta tenderloin turkey, shankle shank brisket ball tip tail drumstick. Beef strip steak turkey, corned beef pork chicken bacon swine jowl. Pork loin pancetta ham hock shankle jowl. Beef ribs chicken meatloaf pork belly andouille pastrami. Chicken ground round tri-tip tail meatball, short ribs pork belly pork salami corned beef shoulder tongue jerky.
+					<div class="scrollable ios">
+						<img src="http://peach.blender.org/wp-content/uploads/poster_rodents_small.jpg" width="1024" height="640" alt="" />
+					</div>
+					<div class="scrollable lion">
+						<img src="http://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg" alt="" />
 					</div>
 					<div class="code"></div>
 				</div>

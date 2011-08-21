@@ -1,0 +1,112 @@
+﻿/**
+ * venScrollbar jQuery Plugin v2.0.0
+ * http://codecanyon.net/item/venscrollbar-a-jquery-scrollbar-plugin/118911
+ * 
+ * Copyright 2011, Stephen Bunch
+ *
+ * August 2011
+ */
+.ios > .venscrollbar-ui .venscrollbar-ui-x
+{
+	bottom: 2px;
+	left: 2px;
+	right: 2px;
+}
+.ios > .venscrollbar-ui .venscrollbar-ui-y
+{
+	right: 2px;
+	top: 2px;
+	bottom: 2px;
+}
+
+.ios > .venscrollbar-ui .venscrollbar-ui-up,
+.ios > .venscrollbar-ui .venscrollbar-ui-down,
+.ios > .venscrollbar-ui .venscrollbar-ui-left,
+.ios > .venscrollbar-ui .venscrollbar-ui-right,
+.ios > .venscrollbar-ui .venscrollbar-ui-x-track,
+.ios > .venscrollbar-ui .venscrollbar-ui-y-track
+{
+	display: none;
+}
+
+.ios > .venscrollbar-ui .venscrollbar-ui-x,
+.ios > .venscrollbar-ui .venscrollbar-ui-x-bar
+{
+	height: 6px;
+}
+
+.ios > .venscrollbar-ui .venscrollbar-ui-y,
+.ios > .venscrollbar-ui .venscrollbar-ui-y-bar
+{
+	width: 6px;
+}
+ 
+.ios > .venscrollbar-ui .end-top,
+.ios > .venscrollbar-ui .end-bottom,
+.ios > .venscrollbar-ui .end-left,
+.ios > .venscrollbar-ui .end-right
+{
+	background-image: url("img/sprite.png");
+	background-repeat: no-repeat;
+	position: absolute;
+}
+
+.ios > .venscrollbar-ui .end-top
+{
+	right: 0;
+	left: 0;
+	top: 0;
+	height: 5px;
+	background-position: -9px -10px;
+}
+
+.ios > .venscrollbar-ui .middle-y
+{
+	position: absolute;
+	right: 0;
+	left: 0;
+	top: 5px;
+	bottom: 5px;
+	background-image: url("img/bg-y.png");
+	background-repeat: repeat-y;
+	background-position: -10px 0;
+}
+
+.ios > .venscrollbar-ui .end-bottom
+{
+	right: 0;
+	left: 0;
+	bottom: 0;
+	height: 5px;
+	background-position: -16px -10px;
+}
+
+.ios > .venscrollbar-ui .end-left
+{
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 5px;
+	background-position: -24px -7px;
+}
+
+.ios > .venscrollbar-ui .middle-x
+{
+	position: absolute;
+	right: 5px;
+	left: 5px;
+	bottom: 0;
+	top: 0;
+	background-image: url("img/bg-x.png");
+	background-repeat: repeat-x;
+	background-position: 0 -10px;
+}
+
+.ios > .venscrollbar-ui .end-right
+{
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 5px;
+	background-position: -24px 0;
+}

@@ -12,6 +12,12 @@
  */
 (function( $, window, nil, undefined ) {
 
+/**
+ * @param {object} [settings] An object containing settings to enable or disable plugin features.
+ * 
+ * @param {function} [ready] A callback to be executed in the context of the selected DOM element
+ * after the plugin has finished initializing.
+ */
 $.fn["venScrollbar"] = function ( settings, ready ) {
 	var defaults = {
 		"anchor": true,				// handle anchor link click events
@@ -25,8 +31,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 		"fx": {
 			"autoHide": false,		// hide controls when idle
-			"fadeIn": 0,			// duration of fadeIn in milliseconds
-			"fadeOut": 0,			// duration of fadeOut in milliseconds
+			"fadeIn": 200,			// duration of fadeIn in milliseconds
+			"fadeOut": 400,			// duration of fadeOut in milliseconds
 			"idle": 1000,			// milliseconds of inactivity to determine idle status
 			"inertial": true, 		// enable inertial scrolling like on iOS devices
 			"initHide": false,		// hide controls on initialization
@@ -45,7 +51,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 	};
 
 	// Merge two objects recursively, modifying the first.
-	settings = $.extend( true, defaults, settings );
+	defaults = $.extend( true, defaults, $.fn["venScrollbar"]["defaults"] );
+	var options = $.extend( true, defaults, settings );
 
 	return this.each(function() {
 		var valid = ["auto", "scroll"],
@@ -55,7 +62,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			xBar,
 			yBar,
 			controls,
-			opt = $.extend( true, $.extend( true, { }, settings ), {
+			opt = $.extend( true, $.extend( true, { }, options ), {
 				"overflow": {
 					"x": root.css( "overflow-x" ),
 					"y": root.css( "overflow-y" )
@@ -73,14 +80,15 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		body = viewport.children();
 
 		// Append each container element to the wrapper.
-		var cursor = $( "<div class='venscrollbar-ui'>" ).appendTo( root );
-		$.each( "ui-x ui-y > ui-track ui-bar < ui-up ui-down ui-left ui-right".split( " " ), function ( index, value ) {
+		var cursor = $( "<div class='venscrollbar-ui'>" ).appendTo( root ),
+			childIndex = 0;
+		$.each( "x > x-track x-bar < y > y-track y-bar < up down left right".split( " " ), function ( index, value ) {
 			if ( value === ">" ) {
-				cursor = cursor.children();
+				cursor = cursor.children().eq( childIndex++ );
 			} else if ( value === "<" ) {
 				cursor = cursor.parent();
 			} else {
-				cursor.append( "<div class='venscrollbar-" + value + "'>" );
+				cursor.append( "<div class='venscrollbar-ui-" + value + "'>" );
 			}
 		});
 		controls = $( "> .venscrollbar-ui", root );
@@ -121,11 +129,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			ScrollBar = function ( axis ) {
 				var	me = this,
 					guid = $.guid++,
+					activeClass = "venscrollbar-active",
+					hoverClass = "venscrollbar-hover",
 
 					// Selectors.
 					wrap = controls.children().eq( axis - 1 ),
-					bar = $( "> .venscrollbar-ui-bar", wrap ),
-					track = $( "> .venscrollbar-ui-track", wrap ),
+					bar = $( "> .venscrollbar-ui-" + ( axis === 1 ? "x" : "y" ) + "-bar", wrap ),
+					track = $( "> .venscrollbar-ui-" + ( axis === 1 ? "x" : "y" ) + "-track", wrap ),
 					prev = $( "> .venscrollbar-ui-" + ( axis === 1 ? "left" : "up" ), controls ),
 					next = $( "> .venscrollbar-ui-" + ( axis === 1 ? "right" : "down" ), controls ),
 					arrows = $( [ prev[0], next[0] ] ),
@@ -153,10 +163,10 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// position.
 					position = Property( 0, function() {
 						var prop = axis === 1 ? "left" : "top",
-							offset = ( position() / me.ratio * -1 ) + body.offsetParent().offset()[prop];
+							offset = Math.round( position() / me.ratio * -1 ) + body.offsetParent().offset()[prop];
 
 						// Update the position of the scrollbar element.
-						bar.css( prop, position() );
+						bar.css( prop, Math.round( position() ) );
 
 						// Update the position of the body. Multiply by -1 because the body needs to go in
 						// the opposite direction than the scrollbar.
@@ -177,9 +187,9 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// Scrollbar { height | width } depending on axis.
 					size = Property( 0, nil, function( value ) {
 						if ( axis === 1 ) {
-							bar.width( value - ( bar.outerWidth() - bar.width() ) );
+							bar.width( Math.round( value - ( bar.outerWidth() - bar.width() ) ) );
 						} else {
-							bar.height( value - ( bar.outerHeight() - bar.height() ) );
+							bar.height( Math.round( value - ( bar.outerHeight() - bar.height() ) ) );
 						}
 						return value;
 					}),
@@ -257,7 +267,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 								}
 							}
 
-							if ( me.val( me.val() + delta, true ) || e["isNewDrag"] ) {
+							if ( me.val( me.val() + delta, 2 ) || e["isNewDrag"] ) {
 								mouseLastOK = mousePosition;
 							}
 						};
@@ -275,14 +285,14 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 										intervalID = 0;
 										return;
 									}
-									position( Math.round( position() + ( me.val() - position() ) / rounds ) );
+									position( position() + ( me.val() - position() ) / rounds );
 									rounds--;
 								}, $.fx.interval );
 							},
 
 							reset = function ( duration ) {
 								// If there's no where to go, then don't do anyting.
-								if ( position() !== me.val() ) {
+								if ( Math.round( position() ) !== Math.round( me.val() ) ) {
 									rounds = Math.round( duration / $.fx.interval );
 
 									// If the loop isn't already running, start it.
@@ -326,8 +336,12 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// ThemeRoller support.
 					themeRoller = Property( false, function() {
 						if ( themeRoller() ) {
+							activeClass = "ui-state-active";
+							hoverClass = "ui-state-hover";
 							uiStyles.enable();
 						} else {
+							activeClass = "venscrollbar-active";
+							hoverClass = "venscrollbar-hover";
 							uiStyles.disable();
 						}
 					}),
@@ -354,15 +368,17 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				me.ratio = 1,
 
 				// The { top | left } position of scrollbar depending on axis.
+				// Mode { 0 -> normal | 1 -> direct (set the value immediately) | 2 -> lag (delay for
+				// FX.LAG before setting the value) }
 				// Returns true if value was changed.
-				me.val = Property( 0, function ( value, dragging ) {
+				me.val = Property( 0, function ( value, mode ) {
 					// Trigger native scroll event.
 					root.scroll();
 
-					// When normal is true, we bypass whatever SMOOTH is set to.
-					if ( !opt["fx"]["smooth"] || dragging ) {
-						// Check for values smaller than 0 because this LAG is a user-inputted value.
-						if ( !dragging || opt["fx"]["lag"] <= 0 ) {
+					// When normal is true, we bypass whatever FX.SMOOTH is set to.
+					if ( !opt["fx"]["smooth"] || mode ) {
+						// Check for values smaller than 0 because FX.LAG is a user-inputted value.
+						if ( mode === 1 || opt["fx"]["lag"] <= 0 ) {
 							position( value );
 
 						} else {
@@ -383,7 +399,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 				// Returns true if value was changed.
 				me.end = function() {
-					return me.val( limit(), false );
+					return me.val( limit() );
 				};
 
 				me.isVisible = function() {
@@ -434,6 +450,37 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						return true;
 					}
 				});
+
+				bar
+					.hover( function() {
+						bar.addClass( hoverClass );
+					}, function() {
+						bar.removeClass( hoverClass );
+					})
+					.mousedown( function() {
+						bar.addClass( activeClass );
+						uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
+							uiRoot.unbind( "mouseup.venScrollbar-" + guid );
+							bar.removeClass( activeClass );
+						});
+					});
+
+				arrows
+					.hover( function() {
+						var $this = $( this ).addClass( hoverClass );
+						if ( $this.data( "venScrollbar-isMouseDown" ) ) {
+							$this.addClass( activeClass );
+						}
+					}, function() {
+						$( this ).removeClass( hoverClass + " " + activeClass );
+					})
+					.mousedown( function() {
+						var $this = $( this ).addClass( activeClass ).data( "venScrollbar-isMouseDown", true );
+						uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
+							uiRoot.unbind( "mouseup.venScrollbar-" + guid );
+							$this.data( "venScrollbar-isMouseDown", false ).removeClass( activeClass );
+						});
+					});
 			},
 
 			anchorLinks = $(),
@@ -508,8 +555,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// Wake from idle.
 					wake();
 
-					xBar.val( xBar.val() + e["delta"]["x"] * -xBar.ratio );
-					yBar.val( yBar.val() + e["delta"]["y"] * -yBar.ratio );
+					xBar.val( xBar.val() + e["delta"]["x"] * -xBar.ratio, 1 );
+					yBar.val( yBar.val() + e["delta"]["y"] * -yBar.ratio, 1 );
 
 				}, opt["touch"], opt["drag"], opt["fx"]["inertial"] );
 
@@ -708,10 +755,12 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 		var func = ready ? ready : settings;
 		if ( $.isFunction( func ) ) {
-			func.call( this, root.data( "venScrollbar" ) );
+			func.call( this, root.data( "venScrollbar" ), controls );
 		}
 	});
 };
+
+$.fn["venScrollbar"]["defaults"] = {};
 
 var	isIE = !$.support.changeBubbles,
 
@@ -732,18 +781,24 @@ var	isIE = !$.support.changeBubbles,
 		selectMode: function ( elem, enabled ) {
 			elem = fn.unbox( elem );
 
-			if ( elem.onselectstart !== undefined ) {
-				elem.onselectstart = enabled ? nil : function() {
+			if ( isIE ) {
+				var doNothing = enabled ? nil : function() {
 					return false;
 				};
 
-			} else if ( elem.style.MozUserSelect !== undefined ) {
-				elem.style.MozUserSelect = enabled ? "auto" : "none";
+				elem.onselectstart = doNothing;
+
+				// Prevent images from being dragged around.
+				$( "img", elem ).each( function() {
+					this.ondragstart = doNothing;
+				});
 
 			} else {
-				elem.onmousedown = enabled ? nil : function() {
-					return false;
-				};
+				$( "img", elem ).add( elem )[ enabled ? "unbind" : "bind" ]( "mousedown.venScrollbar-noSelect", function ( e ) {
+					if ( e.preventDefault ) {
+						e.preventDefault();
+					}
+				});
 			}
 		},
 
@@ -947,6 +1002,7 @@ var	isIE = !$.support.changeBubbles,
 		var elem = fn.unbox( target ),
 			coord = nil,
 			isNewDrag = true,
+
 			inertial = (function() {
 
 				var velocity = { x: 0, y: 0 },
@@ -956,6 +1012,8 @@ var	isIE = !$.support.changeBubbles,
 					amplify = 20,
 					frameRef = 0,
 					animationID = 0,
+					isIdle = false,
+					idleTimeoutID,
 
 					animation = function() {
 						frameRef++;
@@ -1009,9 +1067,20 @@ var	isIE = !$.support.changeBubbles,
 						// Update distance.
 						distance.x += delta["x"];
 						distance.y += delta["y"];
+
+						isIdle = false;
+						clearTimeout( idleTimeoutID );
+						idleTimeoutID = setTimeout( function() {
+							isIdle = true;
+						}, 30);
 					},
 
 					stop: function() {
+						// Bypass inertial scrolling if the user didn't let go as if to throw the page.
+						if ( isIdle ) {
+							return;
+						}
+
 						var now = $.now();
 
 						velocity.x = Math.pow( Math.abs( distance.x / (now - timeStart.x) ), 2.3 ) * amplify;

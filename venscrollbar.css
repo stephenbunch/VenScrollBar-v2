@@ -6,8 +6,6 @@
  *
  * August 2011
  */
-
-/* needs to have a position other than static */
 .venscrollbar-root
 {
 	position: relative;
@@ -35,11 +33,10 @@
 .venscrollbar-ui-y { position: absolute; right: 0; top: 18px; bottom: 18px; width: 18px; }
 
 /* bars and tracks */
-.venscrollbar-ui-bar, .venscrollbar-ui-track { position: absolute; }
-.venscrollbar-ui-x > .venscrollbar-ui-bar { height: 16px; }
-.venscrollbar-ui-y > .venscrollbar-ui-bar { width: 16px; }
-.venscrollbar-ui-x > .venscrollbar-ui-track { height: 16px; left: 0; right: 0; }
-.venscrollbar-ui-y > .venscrollbar-ui-track { width: 16px; top: 0; bottom: 0; }
+.venscrollbar-ui-x-bar { position: absolute; height: 16px; }
+.venscrollbar-ui-y-bar { position: absolute; width: 16px; }
+.venscrollbar-ui-x-track { position: absolute; height: 16px; left: 0; right: 0; }
+.venscrollbar-ui-y-track { position: absolute; width: 16px; top: 0; bottom: 0; }
 
 /* arrows */
 .venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right { position: absolute; height: 16px; width: 16px; }
