@@ -12,6 +12,28 @@
 .google > .venscrollbar-ui .venscrollbar-ui-x-track { bottom: 0; }
 .google > .venscrollbar-ui .venscrollbar-ui-y { top: 17px; bottom: 17px; width: 17px; }
 .google > .venscrollbar-ui .venscrollbar-ui-x { left: 17px; right: 17px; height: 17px; }
+
+.google > .venscrollbar-ui .venscrollbar-ui-y-track
+{
+	border-style: solid;
+	border-color: #E5E5E5;
+	border-width: 0 1px;
+	background: #F5F5F5;
+	width: 14px;
+	top: -1px;
+	bottom: -1px;
+}
+
+.google > .venscrollbar-ui .venscrollbar-ui-x-track
+{
+	border-style: solid;
+	border-color: #E5E5E5;
+	border-width: 1px 0;
+	background: #F5F5F5;
+	height: 14px;
+	left: -1px;
+	right: -1px;
+}
  
 .google > .venscrollbar-ui .end-top,
 .google > .venscrollbar-ui .end-bottom,

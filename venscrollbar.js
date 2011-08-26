@@ -20,39 +20,32 @@
  */
 $.fn["venScrollbar"] = function ( settings, ready ) {
 	var defaults = {
-		"anchor": true,				// handle anchor link click events
-
-		"delta": {					// scroll increments in pixels
-			"small": 40,
-			"large": 100
-		},
-
-		"drag": false, 				// use the mouse to drag the body around
-
-		"fx": {
-			"autoHide": false,		// hide controls when idle
-			"fadeIn": 200,			// duration of fadeIn in milliseconds
-			"fadeOut": 400,			// duration of fadeOut in milliseconds
-			"idle": 1000,			// milliseconds of inactivity to determine idle status
-			"inertial": true, 		// enable inertial scrolling like on iOS devices
-			"initHide": false,		// hide controls on initialization
-			"lag": 0,				// delay before responding to scrollbar dragging
-			"overlay": false,		// overlay controls over the viewport
-			"smooth": false			// use animation to make scrolling smooth like in Firefox
-		},
-
-		"keyboard": true, 			// enable keyboard navigation support
-		"live": true,				// poll for size changes instead of using refresh()
-		"select": true, 			// enable content selection via the mouse
-		"themeRoller": false,		// use jQuery UI ThemeRoller classes
-		"touch": true,				// enable touch support
-		"wheel": true,				// enable mousewheel support
-		"wheelLock": false 			// disable mousewheel from scrolling the page
+		"anchor": true,			// handle anchor link click events
+		"arrows": true,			// inject arrows
+		"autoHide": false,		// hide controls when idle
+		"deltaSmall": 40,		// scroll increment when using arrows or arrow keys
+		"deltaLarge": 100,		// scroll increment when using the mousewheel
+		"drag": false, 			// use the mouse to drag the body around	
+		"fadeIn": 200,			// duration of fadeIn in milliseconds
+		"fadeOut": 400,			// duration of fadeOut in milliseconds
+		"idle": 1000,			// milliseconds of inactivity to determine idle status
+		"inertial": true, 		// enable inertial scrolling like on iOS devices
+		"initHide": false,		// hide controls on initialization
+		"keyboard": true, 		// enable keyboard navigation support
+		"lag": 0,				// delay before responding to scrollbar dragging
+		"live": true,			// poll for size changes instead of using refresh()
+		"overlay": false,		// overlay controls over the viewport
+		"select": true, 		// enable content selection via the mouse
+		"smooth": false,		// use animation to make scrolling smooth like in Firefox
+		"themeRoller": false,	// use jQuery UI ThemeRoller classes
+		"touch": true,			// enable touch support
+		"wheel": true,			// enable mousewheel support
+		"wheelLock": false 		// disable mousewheel from scrolling the page
 	};
 
-	// Merge two objects recursively, modifying the first.
-	defaults = $.extend( true, defaults, $.fn["venScrollbar"]["defaults"] );
-	var options = $.extend( true, defaults, settings );
+	// Merge two objects, modifying the first.
+	defaults = $.extend( defaults, $.fn["venScrollbar"]["defaults"] );
+	var options = $.extend( defaults, settings );
 
 	return this.each(function() {
 		var valid = ["auto", "scroll"],
@@ -62,15 +55,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			xBar,
 			yBar,
 			controls,
-			opt = $.extend( true, $.extend( true, { }, options ), {
-				"overflow": {
-					"x": root.css( "overflow-x" ),
-					"y": root.css( "overflow-y" )
-				}
+			opt = $.extend( $.extend( { }, options ), {
+				"overflowX": root.css( "overflow-x" ),
+				"overflowY": root.css( "overflow-y" )
 			});
 
 		// Skip elements that do not have overflow set to auto or scroll.
-		if ( $.inArray( opt["overflow"]["x"], valid ) === -1 && $.inArray( opt["overflow"]["y"], valid ) === -1 ) {
+		if ( $.inArray( opt["overflowX"], valid ) === -1 && $.inArray( opt["overflowY"], valid ) === -1 ) {
 			return;
 		}
 
@@ -82,7 +73,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		// Append each container element to the wrapper.
 		var cursor = $( "<div class='venscrollbar-ui'>" ).appendTo( root ),
 			childIndex = 0;
-		$.each( "x > x-track x-bar < y > y-track y-bar < up down left right".split( " " ), function ( index, value ) {
+		$.each( "x > x-track x-bar < y > y-track y-bar".split( " " ), function ( index, value ) {
 			if ( value === ">" ) {
 				cursor = cursor.children().eq( childIndex++ );
 			} else if ( value === "<" ) {
@@ -96,11 +87,11 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		var	wake = (function() {
 				var	timeoutID = 0,
 					isIdle = Property( true, function() {
-						if ( opt["fx"]["autoHide"] ) {
+						if ( opt["autoHide"] ) {
 							if ( isIdle() ) {
-								controls.fadeOut( opt["fx"]["fadeOut"] );
+								controls.fadeOut( opt["fadeOut"] );
 							} else {
-								controls.fadeIn( opt["fx"]["fadeIn"] );
+								controls.fadeIn( opt["fadeIn"] );
 							}
 						}
 
@@ -109,7 +100,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 							clearTimeout( timeoutID );
 							timeoutID = setTimeout( function() {
 								isIdle( true );
-							}, opt["fx"]["idle"] );
+							}, opt["idle"] );
 						}
 						return value;
 					});
@@ -136,15 +127,14 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					wrap = controls.children().eq( axis - 1 ),
 					bar = $( "> .venscrollbar-ui-" + ( axis === 1 ? "x" : "y" ) + "-bar", wrap ),
 					track = $( "> .venscrollbar-ui-" + ( axis === 1 ? "x" : "y" ) + "-track", wrap ),
-					prev = $( "> .venscrollbar-ui-" + ( axis === 1 ? "left" : "up" ), controls ),
-					next = $( "> .venscrollbar-ui-" + ( axis === 1 ? "right" : "down" ), controls ),
-					arrows = $( [ prev[0], next[0] ] ),
+					prev = $(),
+					next = $(),
 
 					opposite = function() {
 						return axis === 1 ? yBar : xBar;
 					},
 
-					overflow = Property ( "visible", function() {
+					overflow = Property( "visible", function() {
 						visibility( me.isVisible() );
 					}),
 
@@ -158,10 +148,9 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					// Bar size is being specified by the user.
 					manual = bar[ axis === 1 ? "width" : "height" ]() !== 0,
 
-					// Actual position of the scrollbar. If SMOOTH is true, then the
-					// position may differ from the value. LATENCY may also affect the
-					// position.
-					position = Property( 0, function() {
+					// Unfortunately, the browser's implementation of the hash is whack, so we also
+					// need this method to be invokeable when we're handling the hashchange ourselves.
+					onPositionChanged = function() {
 						var prop = axis === 1 ? "left" : "top",
 							offset = Math.round( position() / me.ratio * -1 ) + body.offsetParent().offset()[prop];
 
@@ -170,14 +159,19 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 						// Update the position of the body. Multiply by -1 because the body needs to go in
 						// the opposite direction than the scrollbar.
-						// We need to use the .offset() function because weird things happen when the page
-						// loads with a hash in the URL, and there is a corresponding anchor point in our
-						// body element.
+						// We cannot rely on CSS top and left because the browser will do whatever it
+						// takes to get that element in view, one of which is screwing with the offset.
+						// This problem is easily seen when the page loads with a hash in the url, and there
+						// is a corresponding anchor point in our body element.
 						body.offset({
-							top: axis !== 1 ? offset : body.offset()["top"],
+							top: axis === 2 ? offset : body.offset()["top"],
 							left: axis === 1 ? offset : body.offset()["left"]
 						});
-					}),
+					},
+
+					// Actual position of the scrollbar. If SMOOTH is true, then the position
+					// may differ from the value. LATENCY may also affect the position.
+					position = Property( 0, onPositionChanged),
 
 					isEnabled = Property( false, function() {
 						visibility( me.isVisible() );
@@ -197,7 +191,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					updateStyle = function() {
 						// If overflow is set to auto and scrollbar is disabled, or if overflow
 						// is set to hidden, then hide.
-						$( [ wrap[0], prev[0], next[0] ] ).css( "display", me.isVisible() ? "block" : "none" );
+						wrap.add( prev ).add( next ).css( "display", me.isVisible() ? "block" : "none" );
 					},
 
 					visibility = Property( false, function() {
@@ -206,14 +200,14 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						// Upon hiding, update the opposite scrollbar's limit so that its track
 						// spans the entire length. Upon showing, shorten its limit so that the
 						// tracks don't intersect.
-						var elems = [ opposite().wrap()[0], opposite().next()[0] ];
-						if ( !opt["fx"]["overlay"] ) {
-							elems.push( viewport[0] );
+						var elems = opposite().wrap().add( opposite().next() );
+						if ( !opt["overlay"] ) {
+							elems = elems.add( viewport );
 						}
-						$( elems ).css( axis === 1 ? "bottom" : "right", ( me.isVisible() ? "+=" : "-=" ) + me.girth() );
+						elems.css( axis === 1 ? "bottom" : "right", ( me.isVisible() ? "+=" : "-=" ) + me.girth() );
 
 						// onSizeChanged will not fire if the track is hidden, therefore the limit will not update.
-						if ( !opt["fx"]["overlay"] || !opt["live"] ) {
+						if ( !opt["overlay"] || !opt["live"] ) {
 							opposite().refresh();
 						}
 					}),
@@ -221,9 +215,14 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					onSizeChanged = function() {
 						var outer = axis === 1 ? "outerWidth" : "outerHeight",
 							inner = axis === 1 ? "innerWidth" : "innerHeight",
+							dimen = axis === 1 ? "width" : "height";
+
+						if ( root[0].style[ dimen ] === "auto" ) {
+							root[ dimen ]( body[ outer ]() );
+						}
 							
-							// If the wrap size is set to 0, then use the viewport size.
-							range = wrap[ axis === 1 ? "width" : "height" ]() || viewport[ inner ]();
+						// If the wrap size is set to 0, then use the viewport size.
+						var range = wrap[ dimen ]() || viewport[ inner ]();
 						
 						// If the scrollbar is a fixed size, then we need to set the
 						// size of the bar and track, and then determine the ratio.
@@ -346,8 +345,51 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						}
 					}),
 
+					bindArrows = Property( false, function() {
+						if ( bindArrows() ) {
+							prev = $( "> .venscrollbar-ui-" + ( axis === 1 ? "left" : "up" ), controls );
+							next = $( "> .venscrollbar-ui-" + ( axis === 1 ? "right" : "down" ), controls );
+
+							fn.selectMode( prev, false );
+							fn.selectMode( next, false );
+
+							Sink.click.hook( next, function (e) {
+								me.val( me.val() + opt["deltaSmall"] * me.ratio );
+							});
+
+							Sink.click.hook( prev, function() {
+								me.val( me.val() - opt["deltaSmall"] * me.ratio );
+							});
+
+							prev
+								.add( next )
+								.hover( function() {
+									var $this = $( this ).addClass( hoverClass );
+									if ( $this.data( "venScrollbar-isMouseDown" ) ) {
+										$this.addClass( activeClass );
+									}
+								}, function() {
+									$( this ).removeClass( hoverClass + " " + activeClass );
+								})
+								.mousedown( function ( e ) {
+									var $this = $( this ).addClass( activeClass ).data( "venScrollbar-isMouseDown", true );
+									uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
+										uiRoot.unbind( "mouseup.venScrollbar-" + guid );
+										$this.data( "venScrollbar-isMouseDown", false ).removeClass( activeClass );
+									});
+
+									// For browsers like Chrome, this ensures that the user can't select anything.
+									if ( e.preventDefault ) {
+										e.preventDefault();
+									}
+									return false;
+								});
+						}
+					}),
+
 					readSettings = function() {
-						overflow( axis === 1 ? opt[ "overflow" ]["x"] : opt[ "overflow" ]["y"] );
+						bindArrows( opt["arrows"] );
+						overflow( axis === 1 ? opt["overflowX"] : opt["overflowY"] );
 						live( opt["live"] );
 						touch( opt["touch"] );
 						themeRoller( opt["themeRoller"] );
@@ -376,16 +418,16 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					root.scroll();
 
 					// When normal is true, we bypass whatever FX.SMOOTH is set to.
-					if ( !opt["fx"]["smooth"] || mode ) {
+					if ( !opt["smooth"] || mode ) {
 						// Check for values smaller than 0 because FX.LAG is a user-inputted value.
-						if ( mode === 1 || opt["fx"]["lag"] <= 0 ) {
+						if ( mode === 1 || opt["lag"] <= 0 ) {
 							position( value );
 
 						} else {
 							// Implement lag.
 							setTimeout( function() {
 								slide( 130 );
-							}, opt["fx"]["lag"] );
+							}, opt["lag"] );
 						}
 
 					} else {
@@ -418,22 +460,24 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					return next;
 				};
 
+				me.isEnabled = function() {
+					return isEnabled();
+				}
+
+				// Ensure that everything is where it should be. Needed to combat the browser's
+				// hashchange hack job.
+				me.ensurePosition = function() {
+					onPositionChanged();
+				};
+
 				// Used for page-ups and page-downs.
 				me.pageSize = 0;
 
 				// Constructor code.
+				readSettings();
+
 				fn.selectMode( wrap, false );
-				fn.selectMode( next, false );
-				fn.selectMode( prev, false );
 				fn.selectMode( track, false );
-
-				Sink.click.hook( next, function (e) {
-					me.val( me.val() + opt["delta"]["small"] * me.ratio );
-				});
-
-				Sink.click.hook( prev, function() {
-					me.val( me.val() - opt["delta"]["small"] * me.ratio );
-				});
 
 				Sink.click.hook( track, function ( e ) {
 					var page = axis === 1 ? e.pageX : e.pageY,
@@ -457,7 +501,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					}, function() {
 						bar.removeClass( hoverClass );
 					})
-					.mousedown( function() {
+					.mousedown( function ( e ) {
 						bar.addClass( activeClass );
 						uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
 							uiRoot.unbind( "mouseup.venScrollbar-" + guid );
@@ -465,22 +509,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						});
 					});
 
-				arrows
-					.hover( function() {
-						var $this = $( this ).addClass( hoverClass );
-						if ( $this.data( "venScrollbar-isMouseDown" ) ) {
-							$this.addClass( activeClass );
-						}
-					}, function() {
-						$( this ).removeClass( hoverClass + " " + activeClass );
-					})
-					.mousedown( function() {
-						var $this = $( this ).addClass( activeClass ).data( "venScrollbar-isMouseDown", true );
-						uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
-							uiRoot.unbind( "mouseup.venScrollbar-" + guid );
-							$this.data( "venScrollbar-isMouseDown", false ).removeClass( activeClass );
-						});
-					});
+				// For browsers like Chrome, this ensures that the user can't select anything.
+				bar.add( track ).mousedown( function ( e ) {
+					if ( e.preventDefault ) {
+						e.preventDefault();
+					}
+					return false;
+				});
 			},
 
 			anchorLinks = $(),
@@ -488,9 +523,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			onAnchorClicked = function ( e ) {
 				stopInertial();
 
-				var hash = $( this ).attr( "href" ),
+				var hash = $( this ).attr( "href" )
 					target = $( hash ),
-					id = target.attr( "id" ),
 
 					getOffset = function ( elem, prop ) {
 						var offset = elem.position()[prop];
@@ -498,27 +532,43 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 							offset += getOffset( elem.offsetParent(), prop );
 						}
 						return offset;
-					};
+					},
+					
+					childModules = target.parentsUntil( root ).filter( "div.venscrollbar-root" );
+
+				if ( childModules.length > 0 ) {
+					target = childModules.eq( 0 );
+				} else {
+					// If we don't check to see if they're different, we will leave the
+					// silent editing in an unfinished state.
+					if ( window.location.hash !== hash ) {
+						Sink.hashchange.silentEdit( target.attr( "id" ) );
+					}
+				}
 
 				// Position the scrollbar where it needs to be.
 				xBar.val( getOffset( target, "left" ) * xBar.ratio );
 				yBar.val( getOffset( target, "top" ) * yBar.ratio );
 
-				// Temporarily remove the id from the target so we can update the
-				// hash without having the window scroll.
-				target.attr( "id", "" );
-				window.location.hash = hash;
-				target.attr( "id", id );
-
-				// Prevent default and scroll to the top of the root element.
-				$( window ).scrollTop( root.offset()["top"] );
-				e.preventDefault();
+				// If the root container is the window, then scroll the window.
+				// Otherwise, let the outer scrollbar do its thing.
+				if ( root.parents( "div.venscrollbar-root" ).length === 0 ) {
+					// Prevent default and scroll to the top of the root element.
+					$( window ).scrollTop( root.offset()["top"] );
+					$( window ).scrollLeft( root.offset()["left"] );
+					e.preventDefault();
+				}
 			},
 
-			onHashChanged = function() {
+			onHashChanged = function ( e ) {
 				var validElems = anchorLinks.filter( "a[href='" + window.location.hash + "']" );
 				if ( validElems.length > 0 ) {
 					onAnchorClicked.call( validElems[0], $.Event() );
+
+					// Ideally, we would just call e.preventDefault(), but that doesn't seem to
+					// mean anything for the hashchange event.
+					xBar.ensurePosition();
+					yBar.ensurePosition();
 				}
 			},
 
@@ -535,8 +585,10 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						// Wake from idle.
 						wake();
 
-						var ui = e.shiftKey || e.axis === 1 ? xBar : yBar,
-							hasChanged = ui.val( ui.val() + opt["delta"]["large"] * ui.ratio * (e.wheelDelta < 0 ? 1 : -1) );
+						// Scroll horizontally if the shift key is held down, or if the vertical scrollbar
+						// is disabled.
+						var ui = e.shiftKey || e.axis === 1 || !yBar.isEnabled() ? xBar : yBar,
+							hasChanged = ui.val( ui.val() + opt["deltaLarge"] * ui.ratio * (e.wheelDelta < 0 ? 1 : -1) );
 
 						if ( opt["wheelLock"] || hasChanged ) {
 							e["consume"]();
@@ -558,7 +610,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					xBar.val( xBar.val() + e["delta"]["x"] * -xBar.ratio, 1 );
 					yBar.val( yBar.val() + e["delta"]["y"] * -yBar.ratio, 1 );
 
-				}, opt["touch"], opt["drag"], opt["fx"]["inertial"] );
+				}, opt["touch"], opt["drag"], opt["inertial"] );
 
 				drag.cookie = obj["cookie"];
 				stopInertial = obj["stopInertial"];
@@ -578,7 +630,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 						var hasChanged = false,
 							key = e.keyCode,
-							small = opt["delta"]["small"];
+							small = opt["deltaSmall"];
 
 						hasChanged =
 							// spacebar
@@ -702,16 +754,30 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				}
 			}),
 
+			injectArrows = Property( false, function() {
+				var items = "up down left right".split( " " );
+				if ( injectArrows() ) {
+					$.each( items, function ( index, value ) {
+						controls.append( "<div class='venscrollbar-ui-" + value + "'>" );
+					});
+				} else {
+					$( $.map( items, function ( value ) { return ".venscrollbar-ui-" + value; }).join( "," ), controls ).remove();
+				}
+			}),
+
 			readSettings = function() {
+				injectArrows( opt["arrows"] );
 				wheel( opt["wheel"] );
 				drag( ( opt["drag"] ? 1 : 0 ) | ( opt["touch"] ? 2 : 0 ) | ( opt["inertial"] ? 4 : 0 ) );
 				keyboard( opt["keyboard"] );
 				anchor( opt["anchor"] );
-				autoHide( opt["fx"]["autoHide"] );
+				autoHide( opt["autoHide"] );
 
 				// Selection support only if DRAG is false and we are not on a mobile device.
 				select( opt["select"] && !opt["drag"] && !isMobile );
 			};
+
+		readSettings();
 
 		// Initialize scrollbars.
 		xBar = new ScrollBar( 1 );
@@ -725,11 +791,9 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		// flexible if we used a regular variable and set overflow to visible.
 		root.css( "overflow", "visible" );
 
-		if ( opt["fx"]["initHide"] ) {
+		if ( opt["initHide"] ) {
 			controls.hide();
 		}
-
-		readSettings();
 
 		// Go to anchor if applicable.
 		if ( opt["anchor"] && window.location.hash !== "" ) {
@@ -739,10 +803,19 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		root.data( "venScrollbar", {
 			"settings": opt,
 
+			"set": function ( propertyName, value ) {
+				if ( $.type( propertyName ) === "string" ) {
+					opt[ propertyName ] = value;
+				} else {
+					$.extend( opt, value );
+				}
+				return this;
+			},
+
 			"refresh": function() {
+				readSettings();
 				xBar.refresh();
 				yBar.refresh();
-				readSettings();
 			},
 
 			"scroll": function ( axis, distance ) {
@@ -778,28 +851,26 @@ var	isIE = !$.support.changeBubbles,
 		},
 
 		// Disables or enables text selection on an element.
-		selectMode: function ( elem, enabled ) {
+		selectMode: function ( elem, enabled, zeroTolerance ) {
 			elem = fn.unbox( elem );
+			
+			var doNothing = function ( e ) {
+				if ( e.preventDefault ) {
+					e.preventDefault();
+				}
+				return false;
+			};
 
-			if ( isIE ) {
-				var doNothing = enabled ? nil : function() {
-					return false;
-				};
-
-				elem.onselectstart = doNothing;
-
-				// Prevent images from being dragged around.
-				$( "img", elem ).each( function() {
-					this.ondragstart = doNothing;
-				});
-
+			if ( elem.style.MozUserSelect !== undefined ) {
+				// Firefox
+				elem.style.MozUserSelect = enabled ? "auto" : "none";
 			} else {
-				$( "img", elem ).add( elem )[ enabled ? "unbind" : "bind" ]( "mousedown.venScrollbar-noSelect", function ( e ) {
-					if ( e.preventDefault ) {
-						e.preventDefault();
-					}
-				});
+				// Everyone else
+				$( elem )[ enabled ? "unbind" : "bind" ]( "selectstart.venScrollbar-noSelect", doNothing );
 			}
+
+			// Prevent images from being dragged around.
+			$( "img", elem )[ enabled ? "unbind" : "bind" ]( "dragstart.venScrollbar-noSelect", doNothing );
 		},
 
 		// Returns true if both variables have the same sign.
@@ -1233,10 +1304,14 @@ var	isIE = !$.support.changeBubbles,
 	Sink.hashchange = Sink( function ( cookie, elem, callback ) {
 		var data = this;
 		if ( $.isEmptyObject( data ) ) {
-			var masterCallback = function() {
-				$.each( data, function ( key, value ) {
-					value();
-				});
+			var masterCallback = function () {
+				if ( !Sink.hashchange.silentMode ) {
+					$.each( data, function ( key, value ) {
+						value();
+					});
+				} else if ( Sink.hashchange.silentMode === 2 ) {
+					Sink.hashchange.silentMode = 0;
+				}
 			};
 
 			if ( elem.addEventListener ) {
@@ -1255,6 +1330,25 @@ var	isIE = !$.support.changeBubbles,
 	}, function ( cookie ) {
 		delete this[cookie];
 	});
+	
+	// { 0 -> normal | 1 -> editing | 2 -> ready to update silently }
+	Sink.hashchange.silentMode = 0;
+
+	// Update the hash silently.
+	Sink.hashchange.silentEdit = function ( id ) {
+		// Set silentMode to 1 so that the callbacks are silenced temporarily.
+		Sink.hashchange.silentMode = 1;
+
+		// Temporarily remove the id from the target so we can update the
+		// hash without having the window scroll.
+		var target = $( "#" + id ).attr( "id", "" );
+		window.location.hash = "#" + id;
+		target.attr( "id", id );
+
+		// Set silentMode to 2 so that the callbacks know they can resume
+		// once they receive the updated value.
+		Sink.hashchange.silentMode = 2;
+	};
 
 	// Enhanced click event.
 	Sink.click = Sink( function ( cookie, elem, callback ) {

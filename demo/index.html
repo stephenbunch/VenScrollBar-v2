@@ -9,11 +9,15 @@
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
 	<script type="text/javascript" src="../venscrollbar.js"></script>
 
-	<link href="jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
+	<link href="lib/lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
 	<link href="../venscrollbar.css" rel="stylesheet" type="text/css" />
 	<link href="../themes/google/google.css" rel="stylesheet" type="text/css" />
 	<link href="../themes/ios/ios.css" rel="stylesheet" type="text/css" />
 	<link href="../themes/ios/lion.css" rel="stylesheet" type="text/css" />
+
+	<link type="text/css" rel="stylesheet" href="lib/SyntaxHighlighter/SyntaxHighlighter.css" />
+	<script type="text/javascript" src="lib/SyntaxHighlighter/shCore.js"></script>
+	<script type="text/javascript" src="lib/SyntaxHighlighter/shBrushJScript.js"></script>
 
 	<style type="text/css">
 		html, body 
@@ -127,15 +131,25 @@
 			width: 800px;
 		}
 		
+		.newline
+		{
+			clear: left;
+		}
+		
+		.dp-highlighter
+		{
+			width: 440px;
+			float: left;
+			margin-left: 20px;
+		}
+		
 	</style>
 
 	<script type="text/javascript">
 		$(function() {
 			
 			$.fn.venScrollbar.defaults = {
-				fx: {
-					smooth: true
-				}
+				smooth: true
 			};
 
 			$( "#root" ).venScrollbar({
@@ -165,24 +179,36 @@
 				data.refresh();
 			});
 
-			$( "#google > div.scrollable" ).venScrollbar(function ( data, ui ) {
+			$( "#google > div.scrollable" ).venScrollbar( function ( data, ui ) {
 				$( ".venscrollbar-ui-y-bar, .venscrollbar-ui-up, .venscrollbar-ui-down", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
 				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
 				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui ).append( "<div class='grip'>" );
 				$( ".venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='decor'>" );
 			});
 
-			$( "#ios > div.scrollable" ).venScrollbar({
+			$( "#ios > div.scrollable, div.dp-highlighter" ).venScrollbar({
 				drag: true,
-				fx: {
-					autoHide: true,
-					overlay: true
-				}
+				autoHide: true,
+				overlay: true,
+				arrows: false
 
 			}, function ( data, ui ) {
 				$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
 				$( ".venscrollbar-ui-x-bar", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
 			});
+
+			dp.SyntaxHighlighter.ClipboardSwf = "lib/SyntaxHighlighter/clipboard.swf";
+			dp.SyntaxHighlighter.HighlightAll( "code" );
+			$( "div.dp-highlighter" ).css( "height", "auto" ).addClass( "ios" ).venScrollbar({				
+				autoHide: true,
+				overlay: true,
+				arrows: false
+				
+			}, function ( data, ui ) {
+				$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
+				$( ".venscrollbar-ui-x-bar", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
+			});
+
 		});
 		
 	</script>
@@ -198,7 +224,7 @@
 				 <h3 class="tag">A jQuery Scrollbar Plugin</h3>
 				 <div class="inner">
 					<p>
-					Version 2 introduces some exciting new features!
+					Version 2 introduces some exciting new features and themes!
 					 </p>
 					 <div class="inner">
 						<ul class="focusarea text">
@@ -228,7 +254,7 @@
 						And of course, the best feature is that it's <b>themeable!</b>
 					</p>
 				 </div>
-				<h3>New Themes!</h3>
+				<h3>Demos</h3>
 				<div id="google" class="demo">
 					<h4>Google</h4>
 					<div class="scrollable google">
@@ -240,10 +266,17 @@ Rump tenderloin corned beef sausage, filet mignon tri-tip ham hock chicken cow v
 Shoulder pork chop filet mignon, leberkäse biltong cow bacon swine. Jowl tenderloin tri-tip, rump bresaola shank pork chop spare ribs ribeye fatback. Ribeye meatloaf chuck flank, jerky cow pork beef ribs pig ham fatback kielbasa shoulder. Capicola salami pastrami, ground round brisket kielbasa pig shoulder drumstick shank pork belly t-bone. Pork belly frankfurter flank drumstick, salami kielbasa short loin pork ham hock. Ball tip turkey pancetta strip steak boudin beef ribs. Tenderloin chicken pork short ribs meatball tail.
 						</div>
 					</div>
-					<div class="code"></div>
+					<pre name="code" class="js">
+$( "#google > div.scrollable" ).venScrollbar( function ( data, ui ) {
+	$( ".venscrollbar-ui-y-bar, .venscrollbar-ui-up, .venscrollbar-ui-down", ui ).append( "&lt;div class='end-top'/>&lt;div class='middle-y'/>&lt;div class='end-bottom'/>" );
+	$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "&lt;div class='end-left'/>&lt;div class='middle-x'/>&lt;div class='end-right'/>" );
+	$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui ).append( "&lt;div class='grip'>" );
+	$( ".venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "&lt;div class='decor'>" );
+});
+					</pre>
 				</div>
 				<div id="ios" class="demo">
-					<h4>iOS</h4>
+					<h4 class="newline">iOS</h4>
 					<div class="scrollable ios">
 						<img src="http://peach.blender.org/wp-content/uploads/poster_rodents_small.jpg" width="1024" height="640" alt="" />
 					</div>
