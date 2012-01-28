@@ -8,11 +8,9 @@
  */
 $( document ).ready( function() {
 	$( "#box" ).venScrollbar({
-		drag: true,
-		fx: {
-			autoHide: true,
-			overlay: true
-		}
+		autoHide: true,
+		overlay: true,
+		arrows: false
 
 	}, function ( data, ui ) {
 		$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );

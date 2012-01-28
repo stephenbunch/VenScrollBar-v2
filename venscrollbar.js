@@ -21,7 +21,7 @@
 $.fn["venScrollbar"] = function ( settings, ready ) {
 	var defaults = {
 		"anchor": true,			// handle anchor link click events
-		"arrows": true,			// inject arrows
+		"arrows": true,			// inject HTML for arrows
 		"autoHide": false,		// hide controls when idle
 		"deltaSmall": 40,		// scroll increment when using arrows or arrow keys
 		"deltaLarge": 100,		// scroll increment when using the mousewheel
@@ -35,12 +35,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		"lag": 0,				// delay before responding to scrollbar dragging
 		"live": true,			// poll for size changes instead of using refresh()
 		"overlay": false,		// overlay controls over the viewport
-		"select": true, 		// enable content selection via the mouse
-		"smooth": false,		// use animation to make scrolling smooth like in Firefox
-		"themeRoller": false,	// use jQuery UI ThemeRoller classes
+		"select": true, 		// enable text selection
+		"smooth": false,		// enable smooth scrolling
+		"stealFocus": false, 	// always consume mousewheel and touch events
+		"themeRoller": false,	// enable jQuery UI ThemeRoller support
 		"touch": true,			// enable touch support
-		"wheel": true,			// enable mousewheel support
-		"wheelLock": false 		// disable mousewheel from scrolling the page
+		"track": true,			// inject HTML for track
+		"wheel": true			// enable mousewheel support
 	};
 
 	// Merge two objects, modifying the first.
@@ -65,7 +66,13 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			return;
 		}
 
-		root.addClass( "venscrollbar-root" ).contents().wrapAll( "<div class='venscrollbar-viewport'><div class='venscrollbar-body'> ");
+		// We may be initializing an empty container, in which case wrapAll won't do anything.
+		var wrap = "<div class='venscrollbar-viewport'><div class='venscrollbar-body'>";
+		if ( root.addClass( "venscrollbar-root" ).contents().length > 0 ) {
+			root.contents().wrapAll( wrap );
+		} else {
+			root.append( wrap );
+		}
 
 		viewport = root.children();
 		body = viewport.children();
@@ -73,7 +80,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 		// Append each container element to the wrapper.
 		var cursor = $( "<div class='venscrollbar-ui'>" ).appendTo( root ),
 			childIndex = 0;
-		$.each( "x > x-track x-bar < y > y-track y-bar".split( " " ), function ( index, value ) {
+		$.each( "x > x-bar < y > y-bar".split( " " ), function ( index, value ) {
 			if ( value === ">" ) {
 				cursor = cursor.children().eq( childIndex++ );
 			} else if ( value === "<" ) {
@@ -175,7 +182,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 					isEnabled = Property( false, function() {
 						visibility( me.isVisible() );
-						bar[ isEnabled() ? "removeClass" : "addClass" ]( "venscrollbar-state-disabled" );
+						bar[ isEnabled() ? "removeClass" : "addClass" ]( "venscrollbar-disabled" );
 					}),
 
 					// Scrollbar { height | width } depending on axis.
@@ -197,17 +204,17 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					visibility = Property( false, function() {
 						updateStyle();
 
-						// Upon hiding, update the opposite scrollbar's limit so that its track
+						// Upon hiding, update the opposite scrollbar's limit so that its range
 						// spans the entire length. Upon showing, shorten its limit so that the
-						// tracks don't intersect.
+						// scrollbars don't intersect.
 						var elems = opposite().wrap().add( opposite().next() );
 						if ( !opt["overlay"] ) {
 							elems = elems.add( viewport );
 						}
 						elems.css( axis === 1 ? "bottom" : "right", ( me.isVisible() ? "+=" : "-=" ) + me.girth() );
 
-						// onSizeChanged will not fire if the track is hidden, therefore the limit will not update.
-						if ( !opt["overlay"] || !opt["live"] ) {
+						// onSizeChanged will not fire if LIVE is disabled.
+						if ( !opt["live"] ) {
 							opposite().refresh();
 						}
 					}),
@@ -224,10 +231,9 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						// If the wrap size is set to 0, then use the viewport size.
 						var range = wrap[ dimen ]() || viewport[ inner ]();
 						
-						// If the scrollbar is a fixed size, then we need to set the
-						// size of the bar and track, and then determine the ratio.
-						// If not, we need to determine the ratio, and then set the
-						// size of the bar and track.
+						// If the plugin uses a fixed bar size, we need to calculate the
+						// ratio after setting the size and limit. Otherwise, we need to 
+						// calculate the ratio before setting the size and limit.
 						if ( manual ) {
 							size( bar[ outer ]() );
 							limit( range - size() );
@@ -373,8 +379,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 								})
 								.mousedown( function ( e ) {
 									var $this = $( this ).addClass( activeClass ).data( "venScrollbar-isMouseDown", true );
-									uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
-										uiRoot.unbind( "mouseup.venScrollbar-" + guid );
+									uiRoot.on( "mouseup.venScrollbar-" + guid, function() {
+										uiRoot.off( "mouseup.venScrollbar-" + guid );
 										$this.data( "venScrollbar-isMouseDown", false ).removeClass( activeClass );
 									});
 
@@ -387,8 +393,38 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						}
 					}),
 
+					bindTrack = Property( false, function() {
+						if ( bindTrack() ) {
+							fn.selectMode( track, false );
+							Sink.click.hook( track, function ( e ) {
+								var page = axis === 1 ? e.pageX : e.pageY,
+									offset = bar.offset()[ axis === 1 ? "left" : "top" ];
+
+								if ( page < offset ) {
+									me.val( me.val() - me.pageSize * me.ratio );
+
+								} else if ( page > offset + bar[ axis === 1 ? "outerWidth" : "outerHeight" ]() ) {
+									me.val( me.val() + me.pageSize * me.ratio );
+
+								} else {
+									// Stop scrolling.
+									return true;
+								}
+							});
+
+							// For browsers like Chrome, this ensures that the user can't select anything.
+							track.mousedown( function ( e ) {
+								if ( e.preventDefault ) {
+									e.preventDefault();
+								}
+								return false;
+							});
+						}
+					}),
+
 					readSettings = function() {
 						bindArrows( opt["arrows"] );
+						bindTrack( opt["track"] );
 						overflow( axis === 1 ? opt["overflowX"] : opt["overflowY"] );
 						live( opt["live"] );
 						touch( opt["touch"] );
@@ -406,8 +442,8 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				};
 
 				// When FIXED is true, ratio is limit / (body size - viewport size).
-				// When FIXED is false, ratio is track size / body size.
-				me.ratio = 1,
+				// When FIXED is false, ratio is wrap size / body size.
+				me.ratio = 1;
 
 				// The { top | left } position of scrollbar depending on axis.
 				// Mode { 0 -> normal | 1 -> direct (set the value immediately) | 2 -> lag (delay for
@@ -462,7 +498,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 				me.isEnabled = function() {
 					return isEnabled();
-				}
+				};
 
 				// Ensure that everything is where it should be. Needed to combat the browser's
 				// hashchange hack job.
@@ -477,23 +513,6 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				readSettings();
 
 				fn.selectMode( wrap, false );
-				fn.selectMode( track, false );
-
-				Sink.click.hook( track, function ( e ) {
-					var page = axis === 1 ? e.pageX : e.pageY,
-						offset = bar.offset()[ axis === 1 ? "left" : "top" ];
-
-					if ( page < offset ) {
-						me.val( me.val() - me.pageSize * me.ratio );
-
-					} else if ( page > offset + bar[ axis === 1 ? "outerWidth" : "outerHeight" ]() ) {
-						me.val( me.val() + me.pageSize * me.ratio );
-
-					} else {
-						// Stop scrolling.
-						return true;
-					}
-				});
 
 				bar
 					.hover( function() {
@@ -503,19 +522,17 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 					})
 					.mousedown( function ( e ) {
 						bar.addClass( activeClass );
-						uiRoot.bind( "mouseup.venScrollbar-" + guid, function() {
-							uiRoot.unbind( "mouseup.venScrollbar-" + guid );
+						uiRoot.on( "mouseup.venScrollbar-" + guid, function() {
+							uiRoot.off( "mouseup.venScrollbar-" + guid );
 							bar.removeClass( activeClass );
 						});
-					});
 
-				// For browsers like Chrome, this ensures that the user can't select anything.
-				bar.add( track ).mousedown( function ( e ) {
-					if ( e.preventDefault ) {
-						e.preventDefault();
-					}
-					return false;
-				});
+						// For browsers like Chrome, this ensures that the user can't select anything.
+						if ( e.preventDefault ) {
+							e.preventDefault();
+						}
+						return false;
+					});
 			},
 
 			anchorLinks = $(),
@@ -523,7 +540,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			onAnchorClicked = function ( e ) {
 				stopInertial();
 
-				var hash = $( this ).attr( "href" )
+				var hash = $( this ).attr( "href" ),
 					target = $( hash ),
 
 					getOffset = function ( elem, prop ) {
@@ -590,7 +607,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 						var ui = e.shiftKey || e.axis === 1 || !yBar.isEnabled() ? xBar : yBar,
 							hasChanged = ui.val( ui.val() + opt["deltaLarge"] * ui.ratio * (e.wheelDelta < 0 ? 1 : -1) );
 
-						if ( opt["wheelLock"] || hasChanged ) {
+						if ( opt["stealFocus"] || hasChanged ) {
 							e["consume"]();
 						}
 					});
@@ -620,7 +637,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			keyboard = Property( false, function() {
 				if ( keyboard() ) {
 					root[0].tabIndex = 0;
-					root.bind( "keydown.venScrollbar", function ( e ) {
+					root.on( "keydown.venScrollbar", function ( e ) {
 						if ( e.keyCode > 31 && e.keyCode < 41 ) {
 							stopInertial();
 
@@ -653,7 +670,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 							key === 40 ? yBar.val( yBar.val() + small * yBar.ratio ) :
 							false;
 
-						if ( hasChanged || ( opt["wheelLock"] && key > 31 && key < 41 ) ) {
+						if ( hasChanged || ( opt["stealFocus"] && key > 31 && key < 41 ) ) {
 							e.preventDefault();
 							e.stopPropagation();
 						}
@@ -661,7 +678,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 				} else {
 					root[0].tabIndex = -1;
-					root.unbind( "keydown.venScrollbar" );
+					root.off( "keydown.venScrollbar" );
 				}
 			}),
 
@@ -674,7 +691,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				}
 
 			}, function ( value ) {
-				anchorLinks.unbind( "click.venScrollbar" );
+				anchorLinks.off( "click.venScrollbar" );
 
 				if ( value ) {
 					// Override the click behavior of affecting anchor links.
@@ -686,7 +703,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 
 							return anchor.length > 0 ? anchor[0] : nil;
 						})
-						.bind( "click.venScrollbar", onAnchorClicked );
+						.on( "click.venScrollbar", onAnchorClicked );
 				}
 
 				return value;
@@ -695,7 +712,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 			// Selection support.
 			select = Property( nil, function() {
 				if ( select() ) {
-					viewport.bind( "mousedown.venScrollbar", function ( e ) {
+					viewport.on( "mousedown.venScrollbar", function ( e ) {
 						var intervalID = 0,
 							xStep = 0,
 							yStep = 0,
@@ -708,7 +725,7 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 								right: offset["left"] + elem.width()
 							};
 
-						uiRoot.bind( "mousemove.venScrollbar-select", function ( e ) {
+						uiRoot.on( "mousemove.venScrollbar-select", function ( e ) {
 							yStep = e.pageY < limit.top ? Math.floor( (e.pageY - limit.top) / 5 ) :
 								e.pageY > limit.bottom ? Math.floor( (e.pageY - limit.bottom) / 5 ) :
 								0;
@@ -733,23 +750,23 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 								intervalID = 0;
 							}
 
-						}).bind( "mouseup.venScrollbar-select", function() {
+						}).on( "mouseup.venScrollbar-select", function() {
 							clearInterval( intervalID );
-							uiRoot.unbind( ".venScrollbar-select" );
+							uiRoot.off( ".venScrollbar-select" );
 						});
 					});
 
 				} else {
 					fn.selectMode( body, false );
-					viewport.unbind( "mousedown.venScrollbar" );
+					viewport.off( "mousedown.venScrollbar" );
 				}
 			}),
 
 			autoHide = Property( false, function() {
 				if ( autoHide() ) {
-					root.bind( "mousemove.venScrollbar", wake );
+					root.on( "mousemove.venScrollbar", wake );
 				} else {
-					root.unbind( "mousemove.venScrollbar" );
+					root.off( "mousemove.venScrollbar" );
 					controls.show();
 				}
 			}),
@@ -765,8 +782,21 @@ $.fn["venScrollbar"] = function ( settings, ready ) {
 				}
 			}),
 
+			injectTrack = Property( false, function() {
+				var items = "venscrollbar-ui-x venscrollbar-ui-y".split( " " );
+				if ( injectTrack() ) {
+					$.each( items, function ( index, value ) {
+						// Use prepend instead of append so that the track displays underneath the bar.
+						$( "." + value, controls ).prepend( "<div class='" + value + "-track'>" );
+					});
+				} else {
+					$( $.map( items, function ( value ) { return "." + value + "-track"; }).join( "," ), controls ).remove();
+				}
+			}),
+
 			readSettings = function() {
 				injectArrows( opt["arrows"] );
+				injectTrack( opt["track"] );
 				wheel( opt["wheel"] );
 				drag( ( opt["drag"] ? 1 : 0 ) | ( opt["touch"] ? 2 : 0 ) | ( opt["inertial"] ? 4 : 0 ) );
 				keyboard( opt["keyboard"] );
@@ -866,11 +896,11 @@ var	isIE = !$.support.changeBubbles,
 				elem.style.MozUserSelect = enabled ? "auto" : "none";
 			} else {
 				// Everyone else
-				$( elem )[ enabled ? "unbind" : "bind" ]( "selectstart.venScrollbar-noSelect", doNothing );
+				$( elem )[ enabled ? "off" : "on" ]( "selectstart.venScrollbar", doNothing );
 			}
 
 			// Prevent images from being dragged around.
-			$( "img", elem )[ enabled ? "unbind" : "bind" ]( "dragstart.venScrollbar-noSelect", doNothing );
+			$( "img", elem )[ enabled ? "off" : "on" ]( "dragstart.venScrollbar", doNothing );
 		},
 
 		// Returns true if both variables have the same sign.
@@ -976,7 +1006,7 @@ var	isIE = !$.support.changeBubbles,
 							styleRules[i] = ".ui-flip." + selector + "{background:" + "url(" + c.toDataURL() + ") repeat-y 50% 50%}";
 							
 							triggerReady();
-						}
+						};
 						img.onerror = triggerReady;
 						img.src = url;
 					});
@@ -1177,9 +1207,9 @@ var	isIE = !$.support.changeBubbles,
 
 			onMouseDown = function() {
 				uiRoot
-					.bind( "mousemove.venScrollbar-drag", onMouseMove )
-					.bind( "mouseup.venScrollbar-drag", function() {
-						uiRoot.unbind( ".venScrollbar-drag" );
+					.on( "mousemove.venScrollbar-drag", onMouseMove )
+					.on( "mouseup.venScrollbar-drag", function() {
+						uiRoot.off( ".venScrollbar-drag" );
 						if ( inertialOn ) {
 							inertial.stop();
 						}
@@ -1252,7 +1282,7 @@ var	isIE = !$.support.changeBubbles,
 
 		} else if ( desktopOn ) {
 			// Desktop support.
-			$( elem ).bind( "mousedown.venScrollbar-drag", onMouseDown );
+			$( elem ).on( "mousedown.venScrollbar-drag", onMouseDown );
 
 			// Disable text selection.
 			fn.selectMode( elem, false );
@@ -1266,7 +1296,7 @@ var	isIE = !$.support.changeBubbles,
 
 	}, function ( cookie ) {
 		if ( data = this[cookie] ) {
-			$( data[0] ).unbind( ".venScrollbar-drag" );
+			$( data[0] ).off( ".venScrollbar-drag" );
 
 			// Enable text selection.
 			fn.selectMode( data[0], true );
@@ -1377,7 +1407,7 @@ var	isIE = !$.support.changeBubbles,
 				isPaused = false;
 				isStarted = false;
 				isCancelled = false;
-				$elem.unbind( "mousemove.venScrollbar-click" );
+				$elem.off( "mousemove.venScrollbar-click" );
 			},
 			
 			pause = function() {
@@ -1386,8 +1416,8 @@ var	isIE = !$.support.changeBubbles,
 			};
 
 		$elem
-			.bind( "mousedown.venScrollbar-click", function ( e ) {
-				$elem.bind( "mousemove.venScrollbar-click", function ( e ) {
+			.on( "mousedown.venScrollbar-click", function ( e ) {
+				$elem.on( "mousemove.venScrollbar-click", function ( e ) {
 					event = e;
 					if ( isCancelled ) {
 						isCancelled = false;
@@ -1397,27 +1427,27 @@ var	isIE = !$.support.changeBubbles,
 				event = e;
 				run();
 			})
-			.bind( "mouseup.venScrollbar-click", stop )
-			.bind( "mouseleave.venScrollbar-click", function () {
+			.on( "mouseup.venScrollbar-click", stop )
+			.on( "mouseleave.venScrollbar-click", function () {
 				if ( isStarted ) {
 					pause();
 				}
 			})
-			.bind( "mouseenter.venScrollbar-click", function ( e ) {
+			.on( "mouseenter.venScrollbar-click", function ( e ) {
 				if ( isPaused ) {
 					event = e;
 					run();
 				}
 			});
 
-		uiRoot.bind( "mouseup.venScrollbar-click", stop );
+		uiRoot.on( "mouseup.venScrollbar-click", stop );
 
 		this[ cookie ] = elem;
 		return cookie;
 
 	}, function ( cookie ) {
 		if ( elem = this[cookie] ) {
-			$( elem ).unbind( "venScrollbar-click" );
+			$( elem ).off( "venScrollbar-click" );
 			delete this[cookie];
 		}
 	});

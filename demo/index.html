@@ -6,7 +6,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>venScrollbar 2.0 Live Demo</title>
 
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
 	<script type="text/javascript" src="../venscrollbar.js"></script>
 
 	<link href="lib/lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
@@ -19,12 +19,19 @@
 	<script type="text/javascript" src="lib/SyntaxHighlighter/shCore.js"></script>
 	<script type="text/javascript" src="lib/SyntaxHighlighter/shBrushJScript.js"></script>
 
+	<!--[if lte IE 8]>
+	<link type="text/css" rel="stylesheet" href="../themes/themeroller/themeroller-ie.css" />
+	<![endif]-->
+
 	<style type="text/css">
 		html, body 
 		{
 			padding: 0;
 			margin: 0;
 			height: 100%;
+			
+			/* Ensure that the window scrollbar is always hidden. */
+			overflow: hidden;
 		}
 		
 		body 
@@ -149,24 +156,34 @@
 		$(function() {
 			
 			$.fn.venScrollbar.defaults = {
-				smooth: true
+				smooth: true,
+				live: false
 			};
 
 			$( "#root" ).venScrollbar({
-				themeRoller: true
+				themeRoller: true,
+				live: true
 
 			}, function( data, ui ) {
-				var	bars = $( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui )
+				var tmp = $( "<div style='display:none;*height:100px'>" ),
+					isIE7 = tmp.height() === 100;
+				tmp.remove();
+
+				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui )
 					.addClass( "ui-state-default" )
 					.each( function ( index ) {
-						$( this ).append( "<span class='ui-icon ui-icon-grip-solid-" + ( index === 0 ? "vertical" : "horizontal" ) + "' style='bottom:0;left:0;right:0;top:0;margin:auto;position:absolute'>" );
+						if ( isIE7 ) {
+							$( this ).append( "<div style='position:absolute;top:50%;width:100%;'><span class='ui-icon ui-icon-grip-solid-" + ( index === 0 ? "vertical" : "horizontal" ) + "' style='top:-50%;position:relative;margin:0 auto;'/>" );
+						} else {
+							$( this ).append( "<span class='ui-icon ui-icon-grip-solid-" + ( index === 0 ? "vertical" : "horizontal" ) + "' style='bottom:0;left:0;right:0;top:0;margin:auto;position:absolute'/>" );
+						}
 					})
 					.eq( 1 ).addClass( "ui-flip" );
 
-				var arrows = $( ".venscrollbar-ui-left, .venscrollbar-ui-right, .venscrollbar-ui-up, .venscrollbar-ui-down", ui )
+				$( ".venscrollbar-ui-left, .venscrollbar-ui-right, .venscrollbar-ui-up, .venscrollbar-ui-down", ui )
 					.addClass( "ui-state-default" )
 					.each( function ( index ) {
-						$( this ).append( "<span class='ui-icon ui-icon-triangle-1-" + ( index === 0 ? "n" : index === 1 ? "s" : index === 2 ? "w" : "e" ) + "'>" );
+						$( this ).append( "<span class='ui-icon ui-icon-triangle-1-" + ( index === 0 ? "n" : index === 1 ? "s" : index === 2 ? "w" : "e" ) + "'/>" );
 					})
 					.slice( 2 )
 					.addClass( "ui-flip" );
@@ -182,7 +199,7 @@
 			$( "#google > div.scrollable" ).venScrollbar( function ( data, ui ) {
 				$( ".venscrollbar-ui-y-bar, .venscrollbar-ui-up, .venscrollbar-ui-down", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
 				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='end-left'/><div class='middle-x'/><div class='end-right'/>" );
-				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui ).append( "<div class='grip'>" );
+				$( ".venscrollbar-ui-x-bar, .venscrollbar-ui-y-bar", ui ).append( "<div class='ie7-wrap'><div class='grip'>" );
 				$( ".venscrollbar-ui-up, .venscrollbar-ui-down, .venscrollbar-ui-left, .venscrollbar-ui-right", ui ).append( "<div class='decor'>" );
 			});
 
@@ -190,7 +207,8 @@
 				drag: true,
 				autoHide: true,
 				overlay: true,
-				arrows: false
+				arrows: false,
+				track: false
 
 			}, function ( data, ui ) {
 				$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );
@@ -202,7 +220,8 @@
 			$( "div.dp-highlighter" ).css( "height", "auto" ).addClass( "ios" ).venScrollbar({				
 				autoHide: true,
 				overlay: true,
-				arrows: false
+				arrows: false,
+				track: false
 				
 			}, function ( data, ui ) {
 				$( ".venscrollbar-ui-y-bar", ui ).append( "<div class='end-top'/><div class='middle-y'/><div class='end-bottom'/>" );

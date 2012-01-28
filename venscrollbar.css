@@ -44,3 +44,6 @@
 .venscrollbar-ui-down { bottom: 0; right: 0; }
 .venscrollbar-ui-left { bottom: 0; left: 0; }
 .venscrollbar-ui-right { bottom: 0; right: 0; }
+
+/* IE7 hacks */
+.venscrollbar-ui-y-bar { *line-height: 0; }

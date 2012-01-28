@@ -124,16 +124,12 @@
 .google > .venscrollbar-ui .grip
 {
 	margin: auto;
-	top: 0;
-	bottom: 0;
-	right: 0;
-	left: 0;
 	height: 8px;
 	width: 8px;
 }
 
-.google > .venscrollbar-ui .venscrollbar-ui-y-bar .grip { background-position: -44px -18px; }
-.google > .venscrollbar-ui .venscrollbar-ui-x-bar .grip { background-position: -44px -27px; }
+.google > .venscrollbar-ui .venscrollbar-ui-y-bar .grip { background-position: -44px -18px; left: 4px; top: 0; bottom: 0; }
+.google > .venscrollbar-ui .venscrollbar-ui-x-bar .grip { background-position: -44px -27px; top: 4px; left: 0; right: 0; }
 
 .google > .venscrollbar-ui .venscrollbar-ui-up .decor,
 .google > .venscrollbar-ui .venscrollbar-ui-down .decor { width: 8px; height: 5px; left: 4px; }
@@ -145,3 +141,9 @@
 .google > .venscrollbar-ui .venscrollbar-ui-down .decor { background-position: -18px -25px; bottom: 5px; }
 .google > .venscrollbar-ui .venscrollbar-ui-left .decor { background-position: -28px -18px; left: 5px; }
 .google > .venscrollbar-ui .venscrollbar-ui-right .decor { background-position: -35px -18px; right: 5px; }
+
+/* IE7 hacks */
+.google > .venscrollbar-ui .venscrollbar-ui-y-bar .ie7-wrap { *position: absolute; *top: 50%; }
+.google > .venscrollbar-ui .venscrollbar-ui-y-bar .grip { *margin: 0; *top: -50%; *position: relative; }
+.google > .venscrollbar-ui .venscrollbar-ui-x-bar .ie7-wrap { *position: absolute; *width: 100%; }
+.google > .venscrollbar-ui .venscrollbar-ui-x-bar .grip { *margin: 0 auto; *position: relative; }
